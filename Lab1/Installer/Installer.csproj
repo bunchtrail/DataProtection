@@ -10,20 +10,30 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\LicenseCore\LicenseCore.csproj" />
+    <ProjectReference Include="..\Project1\Project1.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Uninstaller\Uninstaller.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\LicenseCore\LicenseCore.csproj" />
-  </ItemGroup>
+  <Target Name="CopyAppFiles" BeforeTargets="PrepareForBuild">
+    <Message Text="Copying application files..." Importance="high" />
+    <Copy SourceFiles="$(ProjectDir)\..\Project1\bin\$(Configuration)\$(TargetFramework)\ProtectedApp.exe"
+          DestinationFolder="$(ProjectDir)\Resources" />
+    <Copy SourceFiles="$(ProjectDir)\..\Uninstaller\bin\$(Configuration)\$(TargetFramework)\Uninstaller.exe"
+          DestinationFolder="$(ProjectDir)\Resources" />
+  </Target>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\Project1\bin\Release\net8.0-windows\win-x64\publish\ProtectedApp.exe">
-      <Link>ProtectedApp.exe</Link>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\Uninstaller\bin\Release\net8.0-windows\win-x64\publish\Uninstaller.exe">
-      <Link>Uninstaller.exe</Link>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\ProtectedApp.exe" />
+    <EmbeddedResource Include="Resources\Uninstaller.exe" />
   </ItemGroup>
 
 </Project>

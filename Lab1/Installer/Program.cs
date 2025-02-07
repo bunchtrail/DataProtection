@@ -22,8 +22,8 @@ namespace Installer
         private static readonly string LicenseFolderPath = 
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ProtectedApp");
 
-        private const string AppResourceName = "Installer.ProtectedApp.exe";
-        private const string UninstallerResourceName = "Installer.Uninstaller.exe";
+        private const string AppResourceName = "Installer.Resources.ProtectedApp.exe";
+        private const string UninstallerResourceName = "Installer.Resources.Uninstaller.exe";
         private const string LogFile = "install_log.txt";
 
         private static void Log(string message)
@@ -62,6 +62,7 @@ namespace Installer
         [STAThread]
         static void Main()
         {
+            Log("Starting installer...");
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -101,10 +102,11 @@ namespace Installer
             {
                 // Создаем директорию для установки
                 Directory.CreateDirectory(installPath);
+                Log($"Created installation directory: {installPath}");
 
                 // Извлекаем и копируем файлы
-                ExtractAndCopyFile("ProtectedApp.exe", installPath);
-                ExtractAndCopyFile("Uninstaller.exe", installPath);
+                ExtractAndCopyFile(AppResourceName, installPath);
+                ExtractAndCopyFile(UninstallerResourceName, installPath);
 
                 // Создаем ярлыки
                 CreateShortcuts(installPath);
@@ -135,14 +137,22 @@ namespace Installer
         private static void ExtractAndCopyFile(string resourceName, string targetPath)
         {
             var assembly = Assembly.GetExecutingAssembly();
-            using (var stream = assembly.GetManifestResourceStream($"Installer.{resourceName}"))
+            Log($"Looking for resource: {resourceName}");
+            
+            var availableResources = assembly.GetManifestResourceNames();
+            Log($"Available resources: {string.Join(", ", availableResources)}");
+            
+            using (var stream = assembly.GetManifestResourceStream(resourceName))
             {
                 if (stream == null)
                 {
                     throw new Exception($"Не удалось найти встроенный ресурс: {resourceName}");
                 }
 
-                var targetFile = Path.Combine(targetPath, resourceName);
+                var fileName = resourceName.Split('.').Last();
+                var targetFile = Path.Combine(targetPath, fileName);
+                Log($"Extracting {resourceName} to {targetFile}");
+                
                 using (var fileStream = File.Create(targetFile))
                 {
                     stream.CopyTo(fileStream);
@@ -213,4 +223,4 @@ namespace Installer
             return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
     }
-} 
+}
