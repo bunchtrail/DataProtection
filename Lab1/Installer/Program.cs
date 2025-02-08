@@ -104,12 +104,11 @@ namespace Installer
                 Directory.CreateDirectory(installPath);
                 Log($"Created installation directory: {installPath}");
 
-                // Извлекаем и копируем файлы
-                ExtractAndCopyFile(AppResourceName, installPath);
-                ExtractAndCopyFile(UninstallerResourceName, installPath);
+                // Extract all files
+                ExtractFiles(installPath);
 
-                // Создаем ярлыки
-                CreateShortcuts(installPath);
+                // Update shortcuts to point to the new paths
+                CreateShortcuts(Path.Combine(installPath, "App", "ProtectedApp.exe"));
 
                 // Генерируем и сохраняем лицензию
                 GenerateAndSaveLicense();
@@ -158,6 +157,51 @@ namespace Installer
                     stream.CopyTo(fileStream);
                 }
             }
+        }
+
+        private static void ExtractAndCopyDirectory(string resourcePrefix, string targetPath)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            Log($"Looking for resources with prefix: {resourcePrefix}");
+            
+            var resourceNames = assembly.GetManifestResourceNames()
+                .Where(name => name.StartsWith(resourcePrefix))
+                .ToList();
+                
+            Log($"Found {resourceNames.Count} resources");
+            
+            foreach (var resourceName in resourceNames)
+            {
+                using var stream = assembly.GetManifestResourceStream(resourceName);
+                if (stream == null)
+                {
+                    Log($"Warning: Could not load resource {resourceName}");
+                    continue;
+                }
+
+                // Convert resource name to relative path by removing the prefix
+                var relativePath = resourceName.Substring(resourcePrefix.Length).TrimStart('.');
+                var targetFile = Path.Combine(targetPath, relativePath);
+                
+                Log($"Extracting {resourceName} to {targetFile}");
+                
+                // Create directory if it doesn't exist
+                Directory.CreateDirectory(Path.GetDirectoryName(targetFile));
+                
+                using (var fileStream = File.Create(targetFile))
+                {
+                    stream.CopyTo(fileStream);
+                }
+            }
+        }
+
+        private static void ExtractFiles(string installPath)
+        {
+            Log("Extracting ProtectedApp files...");
+            ExtractAndCopyDirectory("Installer.Resources.ProtectedApp", Path.Combine(installPath, "App"));
+            
+            Log("Extracting Uninstaller files...");
+            ExtractAndCopyDirectory("Installer.Resources.Uninstaller", Path.Combine(installPath, "Uninstaller"));
         }
 
         private static void CreateShortcuts(string installPath)

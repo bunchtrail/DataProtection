@@ -21,19 +21,37 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
   </ItemGroup>
 
-  <Target Name="CopyAppFiles" BeforeTargets="PrepareForBuild">
-    <Message Text="Copying application files..." Importance="high" />
-    <Copy SourceFiles="$(ProjectDir)\..\Project1\bin\$(Configuration)\$(TargetFramework)\ProtectedApp.exe"
-          DestinationFolder="$(ProjectDir)\Resources" />
-    <Copy SourceFiles="$(ProjectDir)\..\Uninstaller\bin\$(Configuration)\$(TargetFramework)\Uninstaller.exe"
-          DestinationFolder="$(ProjectDir)\Resources" />
+  <!-- Copy complete application directories with dependencies -->
+  <Target Name="CopyAppFiles" AfterTargets="Build">
+    <Message Text="Copying application files with dependencies..." Importance="high" />
+    
+    <!-- Create subdirectories in build output Resources folder -->
+    <MakeDir Directories="$(OutDir)Resources\ProtectedApp" />
+    <MakeDir Directories="$(OutDir)Resources\Uninstaller" />
+    
+    <!-- Recursively copy all files from Project1 and Uninstaller output -->
+    <ItemGroup>
+      <ProtectedAppFiles Include="$(ProjectDir)\..\Project1\bin\$(Configuration)\$(TargetFramework)\**\*.*" />
+      <UninstallerFiles Include="$(ProjectDir)\..\Uninstaller\bin\$(Configuration)\$(TargetFramework)\**\*.*" />
+    </ItemGroup>
+    
+    <Copy SourceFiles="@(ProtectedAppFiles)"
+          DestinationFiles="@(ProtectedAppFiles->'$(OutDir)Resources\ProtectedApp\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(UninstallerFiles)"
+          DestinationFiles="@(UninstallerFiles->'$(OutDir)Resources\Uninstaller\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
+  <!-- Embed all resource files with folder structure -->
   <ItemGroup>
-    <EmbeddedResource Include="Resources\ProtectedApp.exe" />
-    <EmbeddedResource Include="Resources\Uninstaller.exe" />
+    <EmbeddedResource Include="Resources\ProtectedApp\**\*.*">
+      <LogicalName>Installer.Resources.ProtectedApp.%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Uninstaller\**\*.*">
+      <LogicalName>Installer.Resources.Uninstaller.%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
