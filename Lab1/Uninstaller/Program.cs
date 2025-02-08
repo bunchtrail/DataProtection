@@ -1,7 +1,8 @@
 using System;
 using System.IO;
-using System.Security.Principal;
 using System.Windows.Forms;
+using System.Diagnostics;
+using System.Text;
 
 namespace Uninstaller
 {
@@ -20,13 +21,8 @@ namespace Uninstaller
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            var isAdmin = IsAdministrator();
-            var message = isAdmin ?
-                "Приложение будет полностью удалено из системы." :
-                "Приложение будет удалено, но некоторые файлы могут остаться в системе из-за отсутствия прав администратора.";
-
             if (MessageBox.Show(
-                message + "\n\nВы действительно хотите удалить приложение?",
+                "Приложение будет удалено.\n\nВы действительно хотите удалить приложение?",
                 "Подтверждение удаления",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question) != DialogResult.Yes)
@@ -37,7 +33,7 @@ namespace Uninstaller
             try
             {
                 // Закрываем все процессы приложения
-                foreach (var process in System.Diagnostics.Process.GetProcessesByName(AppName))
+                foreach (var process in Process.GetProcessesByName(AppName))
                 {
                     try
                     {
@@ -47,41 +43,54 @@ namespace Uninstaller
                     catch { }
                 }
 
-                // Удаляем файлы приложения
-                if (Directory.Exists(InstallPath))
-                {
-                    try
-                    {
-                        Directory.Delete(InstallPath, true);
-                    }
-                    catch (UnauthorizedAccessException) when (!isAdmin)
-                    {
-                        MessageBox.Show(
-                            "Некоторые файлы не могут быть удалены без прав администратора.",
-                            "Предупреждение",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Warning);
-                    }
-                }
-
-                // Удаляем файл лицензии и папку в AppData
-                if (Directory.Exists(LicenseFolderPath))
-                {
-                    Directory.Delete(LicenseFolderPath, true);
-                }
-
+                // Создаем батник для удаления
+                var batchPath = Path.Combine(Path.GetTempPath(), "uninstall.bat");
+                var sb = new StringBuilder();
+                sb.AppendLine("@echo off");
+                sb.AppendLine("timeout /t 1 /nobreak > nul");
+                
                 // Удаляем ярлыки
-                DeleteShortcuts(isAdmin);
+                var startMenuPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.StartMenu),
+                    "Programs",
+                    $"{AppName}.lnk");
+                sb.AppendLine($"if exist \"{startMenuPath}\" del /f /q \"{startMenuPath}\"");
 
-                var successMessage = isAdmin ?
-                    "Приложение успешно удалено!" :
-                    "Приложение удалено. Некоторые файлы могли остаться в системе.";
+                var desktopPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                    $"{AppName}.lnk");
+                sb.AppendLine($"if exist \"{desktopPath}\" del /f /q \"{desktopPath}\"");
+
+                // Удаляем лицензию
+                sb.AppendLine($"if exist \"{LicenseFolderPath}\" rmdir /s /q \"{LicenseFolderPath}\"");
+
+                // Удаляем основную папку установки
+                sb.AppendLine($"if exist \"{InstallPath}\" rmdir /s /q \"{InstallPath}\"");
+
+                // Удаляем сам батник
+                sb.AppendLine("(goto) 2>nul & del \"%~f0\"");
+
+                File.WriteAllText(batchPath, sb.ToString());
+
+                // Запускаем батник для удаления
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = batchPath,
+                    UseShellExecute = true,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                };
+
+                Process.Start(startInfo);
 
                 MessageBox.Show(
-                    successMessage,
+                    "Приложение успешно удалено!",
                     "Удаление завершено",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
+
+                // Завершаем процесс деинсталлятора
+                Environment.Exit(0);
             }
             catch (Exception ex)
             {
@@ -92,43 +101,5 @@ namespace Uninstaller
                     MessageBoxIcon.Error);
             }
         }
-
-        private static bool IsAdministrator()
-        {
-            var identity = WindowsIdentity.GetCurrent();
-            var principal = new WindowsPrincipal(identity);
-            return principal.IsInRole(WindowsBuiltInRole.Administrator);
-        }
-
-        private static void DeleteShortcuts(bool isAdmin)
-        {
-            try
-            {
-                // Удаляем ярлык из меню Пуск
-                var startMenuPath = Path.Combine(
-                    Environment.GetFolderPath(isAdmin ? Environment.SpecialFolder.CommonStartMenu : Environment.SpecialFolder.StartMenu),
-                    "Programs",
-                    $"{AppName}.lnk");
-
-                if (File.Exists(startMenuPath))
-                {
-                    File.Delete(startMenuPath);
-                }
-
-                // Удаляем ярлык с рабочего стола
-                var desktopPath = Path.Combine(
-                    Environment.GetFolderPath(isAdmin ? Environment.SpecialFolder.CommonDesktopDirectory : Environment.SpecialFolder.Desktop),
-                    $"{AppName}.lnk");
-
-                if (File.Exists(desktopPath))
-                {
-                    File.Delete(desktopPath);
-                }
-            }
-            catch
-            {
-                // Игнорируем ошибки удаления ярлыков
-            }
-        }
     }
-} 
+}

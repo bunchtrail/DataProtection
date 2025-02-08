@@ -1,6 +1,5 @@
 using System;
 using System.Management;
-using System.Security.Principal;
 using LicenseCore.Interfaces;
 using LicenseCore.Models;
 
@@ -8,39 +7,17 @@ namespace LicenseCore.Services
 {
     public class HardwareInfoProvider : IHardwareInfoProvider
     {
-        private bool IsAdministrator()
-        {
-            var identity = WindowsIdentity.GetCurrent();
-            var principal = new WindowsPrincipal(identity);
-            return principal.IsInRole(WindowsBuiltInRole.Administrator);
-        }
-
         public HardwareInfo GetHardwareInfo()
         {
-            var isAdmin = IsAdministrator();
-            var info = new HardwareInfo
+            return new HardwareInfo
             {
                 CpuId = GetCpuId(),
                 MacAddress = GetMacAddress(),
+                DiskSerialNumber = GetDiskSerialNumber(),
+                MotherboardSerialNumber = GetMotherboardSerialNumber(),
+                BiosSerialNumber = GetBiosSerialNumber(),
                 WindowsId = GetWindowsId()
             };
-
-            // Эти данные доступны только с правами администратора
-            if (isAdmin)
-            {
-                info.DiskSerialNumber = GetDiskSerialNumber();
-                info.MotherboardSerialNumber = GetMotherboardSerialNumber();
-                info.BiosSerialNumber = GetBiosSerialNumber();
-            }
-            else
-            {
-                // Для не-администратора используем заглушки
-                info.DiskSerialNumber = "UserMode";
-                info.MotherboardSerialNumber = "UserMode";
-                info.BiosSerialNumber = "UserMode";
-            }
-
-            return info;
         }
 
         private string GetCpuId()
@@ -147,4 +124,4 @@ namespace LicenseCore.Services
             return "";
         }
     }
-} 
+}

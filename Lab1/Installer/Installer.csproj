@@ -7,15 +7,20 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\LicenseCore\LicenseCore.csproj" />
     <ProjectReference Include="..\Project1\Project1.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
     </ProjectReference>
     <ProjectReference Include="..\Uninstaller\Uninstaller.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
     </ProjectReference>
   </ItemGroup>
 
@@ -28,18 +33,34 @@
   <Target Name="CopyAppFiles" AfterTargets="Build">
     <Message Text="Copying application files with dependencies..." Importance="high" />
     
+    <!-- Clean Resources directory -->
+    <RemoveDir Directories="$(OutDir)Resources" />
+    
     <!-- Create subdirectories in build output Resources folder -->
     <MakeDir Directories="$(OutDir)Resources\ProtectedApp" />
     <MakeDir Directories="$(OutDir)Resources\Uninstaller" />
     
-    <!-- Recursively copy all files from Project1 and Uninstaller output -->
+    <!-- Copy all files from Project1 and Uninstaller output -->
     <ItemGroup>
       <ProtectedAppFiles Include="$(ProjectDir)\..\Project1\bin\$(Configuration)\$(TargetFramework)\**\*.*" />
       <UninstallerFiles Include="$(ProjectDir)\..\Uninstaller\bin\$(Configuration)\$(TargetFramework)\**\*.*" />
     </ItemGroup>
     
-    <Copy SourceFiles="@(ProtectedAppFiles)" DestinationFiles="@(ProtectedAppFiles->'$(OutDir)Resources\ProtectedApp\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy SourceFiles="@(UninstallerFiles)" DestinationFiles="@(UninstallerFiles->'$(OutDir)Resources\Uninstaller\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(ProtectedAppFiles)" 
+          DestinationFiles="@(ProtectedAppFiles->'$(OutDir)Resources\ProtectedApp\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="false" />
+          
+    <Copy SourceFiles="@(UninstallerFiles)" 
+          DestinationFiles="@(UninstallerFiles->'$(OutDir)Resources\Uninstaller\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="false" />
+
+    <!-- Copy LicenseCore and its dependencies -->
+    <Copy SourceFiles="$(ProjectDir)\..\LicenseCore\bin\$(Configuration)\$(TargetFramework)\LicenseCore.dll"
+          DestinationFolder="$(OutDir)Resources\ProtectedApp"
+          SkipUnchangedFiles="false" />
+    <Copy SourceFiles="$(ProjectDir)\..\LicenseCore\bin\$(Configuration)\$(TargetFramework)\LicenseCore.dll"
+          DestinationFolder="$(OutDir)Resources\Uninstaller"
+          SkipUnchangedFiles="false" />
   </Target>
 
   <!-- Embed all resource files with folder structure -->
@@ -50,17 +71,6 @@
     <EmbeddedResource Include="Resources\Uninstaller\**\*.*">
       <LogicalName>Installer.Resources.Uninstaller.%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <COMReference Include="IWshRuntimeLibrary">
-      <WrapperTool>tlbimp</WrapperTool>
-      <VersionMinor>0</VersionMinor>
-      <VersionMajor>1</VersionMajor>
-      <Guid>f935dc20-1cf0-11d0-adb9-00c04fd58a0b</Guid>
-      <Lcid>0</Lcid>
-      <Isolated>false</Isolated>
-      <EmbedInteropTypes>true</EmbedInteropTypes>
-    </COMReference>
   </ItemGroup>
 
 </Project>
