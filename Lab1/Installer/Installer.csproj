@@ -46,10 +46,10 @@
     <MakeDir Directories="$(OutDir)Resources\ProtectedApp" />
     <MakeDir Directories="$(OutDir)Resources\Uninstaller" />
     
-    <!-- Copy all files from Project1 and Uninstaller output -->
+    <!-- Copy all files from published applications -->
     <ItemGroup>
-      <ProtectedAppFiles Include="$(ProjectDir)\..\Project1\bin\$(Configuration)\$(TargetFramework)\**\*.*" />
-      <UninstallerFiles Include="$(ProjectDir)\..\Uninstaller\bin\$(Configuration)\$(TargetFramework)\**\*.*" />
+      <ProtectedAppFiles Include="$(ProjectDir)\..\publish\ProtectedApp\**\*.*" />
+      <UninstallerFiles Include="$(ProjectDir)\..\publish\Uninstaller\**\*.*" />
     </ItemGroup>
     
     <Copy SourceFiles="@(ProtectedAppFiles)" 
