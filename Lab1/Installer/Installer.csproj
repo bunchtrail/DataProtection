@@ -29,6 +29,12 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="InstallForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+
   <!-- Copy complete application directories with dependencies -->
   <Target Name="CopyAppFiles" AfterTargets="Build">
     <Message Text="Copying application files with dependencies..." Importance="high" />

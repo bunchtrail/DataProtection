@@ -14,7 +14,7 @@ namespace Installer
 {
     static class Program
     {
-        private const string AppName = "ProtectedApp";
+        public const string AppName = "ProtectedApp";
         private static readonly string DefaultInstallPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             AppName);
@@ -120,65 +120,51 @@ namespace Installer
         [STAThread]
         static void Main()
         {
-            Log("Starting installer...");
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            if (MessageBox.Show(
-                "Продолжить установку?",
-                "Подтверждение установки",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Information) != DialogResult.Yes)
-            {
-                return;
-            }
+            using var form = new InstallForm(DefaultInstallPath);
+            Application.Run(form);
+        }
 
-            var installPath = DefaultInstallPath;
-            using (var folderDialog = new FolderBrowserDialog())
-            {
-                folderDialog.Description = "Выберите папку для установки приложения";
-                folderDialog.UseDescriptionForTitle = true;
-                folderDialog.SelectedPath = Path.GetDirectoryName(installPath);
-
-                if (folderDialog.ShowDialog() == DialogResult.OK)
-                {
-                    installPath = Path.Combine(folderDialog.SelectedPath, AppName);
-                }
-                else
-                {
-                    return;
-                }
-            }
-
+        public static void Install(string installPath, InstallForm form)
+        {
             try
             {
                 // Создаем директорию для установки
+                form.UpdateProgress(0, "Подготовка к установке...");
                 Directory.CreateDirectory(installPath);
                 Log($"Created installation directory: {installPath}");
 
-                // Extract all files
+                if (form.IsCancelled) return;
+
+                // Extract files
+                form.UpdateProgress(20, "Распаковка файлов приложения...");
                 ExtractFiles(installPath);
 
-                // Update shortcuts to point to the new paths
+                if (form.IsCancelled) return;
+
+                // Update shortcuts
+                form.UpdateProgress(60, "Создание ярлыков...");
                 CreateShortcuts(Path.Combine(installPath, "App", "ProtectedApp.exe"));
 
-                // Генерируем и сохраняем лицензию
+                if (form.IsCancelled) return;
+
+                // Generate and save license
+                form.UpdateProgress(80, "Генерация лицензии...");
                 GenerateAndSaveLicense();
 
-                MessageBox.Show(
-                    "Приложение успешно установлено!\n\nЯрлыки созданы на рабочем столе и в меню Пуск.",
-                    "Установка завершена",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                if (form.IsCancelled) return;
+
+                form.UpdateProgress(100, "Установка завершена");
+                form.OnInstallationComplete(true);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Ошибка при установке: {ex.Message}",
-                    "Ошибка установки",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                Log($"Installation failed: {ex.Message}");
+                Log($"Stack trace: {ex.StackTrace}");
+                form.OnInstallationComplete(false);
             }
         }
 
