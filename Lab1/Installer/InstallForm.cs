@@ -182,6 +182,7 @@ namespace Installer
                     descriptionLabel.Text = "Приложение успешно установлено на ваш компьютер.\n\n" +
                                          "Ярлыки созданы на рабочем столе и в меню 'Пуск'.";
                     nextButton.Text = "Завершить";
+                    nextButton.Enabled = true;  // Делаем кнопку активной
                     pathTextBox.Visible = false;
                     browseButton.Visible = false;
                     progressBar.Visible = false;

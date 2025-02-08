@@ -323,12 +323,92 @@ namespace Installer
             Directory.CreateDirectory(installPath);
             Log($"Created installation directory: {installPath}");
 
+            // Create subdirectories
+            var appPath = Path.Combine(installPath, "App");
+            var uninstallerPath = Path.Combine(installPath, "Uninstaller");
+            Directory.CreateDirectory(appPath);
+            Directory.CreateDirectory(uninstallerPath);
+
             Log("Extracting ProtectedApp files...");
-            // Изменяем путь установки, убираем дополнительную вложенность
-            ExtractAndCopyDirectory("Installer.Resources.ProtectedApp", Path.Combine(installPath, "App"));
+            ExtractAndCopyDirectory("Installer.Resources.ProtectedApp", appPath);
             
             Log("Extracting Uninstaller files...");
-            ExtractAndCopyDirectory("Installer.Resources.Uninstaller", Path.Combine(installPath, "Uninstaller"));
+            ExtractAndCopyDirectory("Installer.Resources.Uninstaller", uninstallerPath);
+
+            // Copy LicenseCore and its dependencies to both App and Uninstaller directories
+            Log("Copying LicenseCore and dependencies...");
+            var licenseCoreDll = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "LicenseCore.dll");
+            if (File.Exists(licenseCoreDll))
+            {
+                File.Copy(licenseCoreDll, Path.Combine(appPath, "LicenseCore.dll"), true);
+                File.Copy(licenseCoreDll, Path.Combine(uninstallerPath, "LicenseCore.dll"), true);
+                Log("Copied LicenseCore.dll");
+            }
+
+            // Copy required dependencies
+            var dependencies = new[]
+            {
+                "Microsoft.Extensions.DependencyInjection.dll",
+                "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+                "System.Management.dll"
+            };
+
+            foreach (var dependency in dependencies)
+            {
+                var sourcePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), dependency);
+                if (File.Exists(sourcePath))
+                {
+                    File.Copy(sourcePath, Path.Combine(appPath, dependency), true);
+                    File.Copy(sourcePath, Path.Combine(uninstallerPath, dependency), true);
+                    Log($"Copied {dependency}");
+                }
+                else
+                {
+                    Log($"Warning: Dependency {dependency} not found");
+                }
+            }
+
+            // Copy runtime folders if they exist
+            var runtimesPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "runtimes");
+            if (Directory.Exists(runtimesPath))
+            {
+                CopyDirectory(runtimesPath, Path.Combine(appPath, "runtimes"));
+                CopyDirectory(runtimesPath, Path.Combine(uninstallerPath, "runtimes"));
+                Log("Copied runtime dependencies");
+            }
+
+            // Copy config files
+            foreach (var configFile in Directory.GetFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "*.config"))
+            {
+                var fileName = Path.GetFileName(configFile);
+                File.Copy(configFile, Path.Combine(appPath, fileName), true);
+                File.Copy(configFile, Path.Combine(uninstallerPath, fileName), true);
+                Log($"Copied config file: {fileName}");
+            }
+
+            Log("All files copied successfully");
+        }
+
+        private static void CopyDirectory(string sourceDir, string destinationDir)
+        {
+            // Create the destination directory
+            Directory.CreateDirectory(destinationDir);
+
+            // Copy all files
+            foreach (string file in Directory.GetFiles(sourceDir))
+            {
+                string fileName = Path.GetFileName(file);
+                string destFile = Path.Combine(destinationDir, fileName);
+                File.Copy(file, destFile, true);
+            }
+
+            // Copy all subdirectories
+            foreach (string dir in Directory.GetDirectories(sourceDir))
+            {
+                string dirName = Path.GetFileName(dir);
+                string destDir = Path.Combine(destinationDir, dirName);
+                CopyDirectory(dir, destDir);
+            }
         }
 
         private static void CreateShortcuts(string appPath)
