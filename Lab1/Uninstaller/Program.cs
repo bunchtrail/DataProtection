@@ -3,16 +3,30 @@ using System.IO;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.Win32;
 
 namespace Uninstaller
 {
     static class Program
     {
         private const string AppName = "ProtectedApp";
-        private static readonly string InstallPath = Path.GetDirectoryName(
-            AppContext.BaseDirectory);
+        private static readonly string InstallPath = GetInstallPath();
         private static readonly string LicenseFolderPath = 
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ProtectedApp");
+
+        private static string GetInstallPath()
+        {
+            try
+            {
+                var key = Registry.CurrentUser.OpenSubKey(@"Software\ProtectedApp");
+                var path = key?.GetValue("InstallPath") as string;
+                return path ?? Path.GetDirectoryName(AppContext.BaseDirectory);
+            }
+            catch
+            {
+                return Path.GetDirectoryName(AppContext.BaseDirectory);
+            }
+        }
 
         [STAThread]
         static void Main()
@@ -33,7 +47,7 @@ namespace Uninstaller
             try
             {
                 // Закрываем все процессы приложения
-                foreach (var process in Process.GetProcessesByName(AppName))
+                foreach (var process in Process.GetProcessesByName("Project1"))
                 {
                     try
                     {
@@ -66,6 +80,9 @@ namespace Uninstaller
 
                 // Удаляем основную папку установки
                 sb.AppendLine($"if exist \"{InstallPath}\" rmdir /s /q \"{InstallPath}\"");
+
+                // Удаляем запись из реестра
+                sb.AppendLine("reg delete \"HKCU\\Software\\ProtectedApp\" /f");
 
                 // Удаляем сам батник
                 sb.AppendLine("(goto) 2>nul & del \"%~f0\"");

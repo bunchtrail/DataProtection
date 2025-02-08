@@ -132,22 +132,32 @@ namespace Installer
         {
             try
             {
-                // Создаем директорию для установки
+                // Проверяем, существует ли директория и очищаем её
                 form.UpdateProgress(0, "Подготовка к установке...");
-                Directory.CreateDirectory(installPath);
-                Log($"Created installation directory: {installPath}");
+                if (Directory.Exists(installPath))
+                {
+                    try
+                    {
+                        Directory.Delete(installPath, true);
+                        Log($"Cleaned up existing installation at: {installPath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Log($"Warning: Could not clean up existing installation: {ex.Message}");
+                    }
+                }
 
                 if (form.IsCancelled) return;
 
                 // Extract files
-                form.UpdateProgress(20, "Распаковка файлов приложения...");
+                form.UpdateProgress(20, "Установка файлов приложения...");
                 ExtractFiles(installPath);
 
                 if (form.IsCancelled) return;
 
                 // Update shortcuts
                 form.UpdateProgress(60, "Создание ярлыков...");
-                CreateShortcuts(Path.Combine(installPath, "App", "ProtectedApp.exe"));
+                CreateShortcuts(Path.Combine(installPath, "Project1.exe"));
 
                 if (form.IsCancelled) return;
 
@@ -159,12 +169,32 @@ namespace Installer
 
                 form.UpdateProgress(100, "Установка завершена");
                 form.OnInstallationComplete(true);
+
+                // Записываем путь установки в реестр для деинсталлятора
+                SaveInstallationPath(installPath);
             }
             catch (Exception ex)
             {
                 Log($"Installation failed: {ex.Message}");
                 Log($"Stack trace: {ex.StackTrace}");
                 form.OnInstallationComplete(false);
+            }
+        }
+
+        private static void SaveInstallationPath(string installPath)
+        {
+            try
+            {
+                var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(
+                    @"Software\ProtectedApp",
+                    true);
+                key?.SetValue("InstallPath", installPath);
+                Log($"Saved installation path to registry: {installPath}");
+            }
+            catch (Exception ex)
+            {
+                Log($"Failed to save installation path to registry: {ex.Message}");
+                // Не выбрасываем исключение, так как это не критическая ошибка
             }
         }
 
@@ -305,30 +335,59 @@ namespace Installer
 
         private static void ExtractFiles(string installPath)
         {
-            // Clean up any existing installation
-            if (Directory.Exists(installPath))
+            try
             {
-                try
+                Log($"Starting file extraction to {installPath}");
+
+                // Создаем директорию для установки
+                Directory.CreateDirectory(installPath);
+
+                // Получаем путь к папке с ресурсами (рядом с exe инсталлятора)
+                var installerDir = AppContext.BaseDirectory;
+                var protectedAppSourcePath = Path.Combine(installerDir, "Resources", "ProtectedApp");
+                var uninstallerSourcePath = Path.Combine(installerDir, "Resources", "Uninstaller");
+
+                // Проверяем наличие исходных файлов
+                if (!Directory.Exists(protectedAppSourcePath))
+                    throw new DirectoryNotFoundException($"Protected app directory not found at: {protectedAppSourcePath}");
+                if (!Directory.Exists(uninstallerSourcePath))
+                    throw new DirectoryNotFoundException($"Uninstaller directory not found at: {uninstallerSourcePath}");
+
+                // Копируем все файлы защищенного приложения
+                foreach (var file in Directory.GetFiles(protectedAppSourcePath, "*.*", SearchOption.AllDirectories))
                 {
-                    Directory.Delete(installPath, true);
-                    Log($"Cleaned up existing installation at: {installPath}");
+                    var relativePath = file.Substring(protectedAppSourcePath.Length).TrimStart('\\', '/');
+                    var targetPath = Path.Combine(installPath, relativePath);
+                    var targetDir = Path.GetDirectoryName(targetPath);
+
+                    if (!string.IsNullOrEmpty(targetDir))
+                        Directory.CreateDirectory(targetDir);
+
+                    File.Copy(file, targetPath, true);
+                    Log($"Copied: {relativePath}");
                 }
-                catch (Exception ex)
+
+                // Копируем все файлы деинсталлятора
+                foreach (var file in Directory.GetFiles(uninstallerSourcePath, "*.*", SearchOption.AllDirectories))
                 {
-                    Log($"Warning: Could not clean up existing installation: {ex.Message}");
+                    var relativePath = file.Substring(uninstallerSourcePath.Length).TrimStart('\\', '/');
+                    var targetPath = Path.Combine(installPath, relativePath);
+                    var targetDir = Path.GetDirectoryName(targetPath);
+
+                    if (!string.IsNullOrEmpty(targetDir))
+                        Directory.CreateDirectory(targetDir);
+
+                    File.Copy(file, targetPath, true);
+                    Log($"Copied: {relativePath}");
                 }
+
+                Log("All files copied successfully");
             }
-
-            // Create fresh installation directory
-            Directory.CreateDirectory(installPath);
-            Log($"Created installation directory: {installPath}");
-
-            Log("Extracting ProtectedApp files...");
-            // Изменяем путь установки, убираем дополнительную вложенность
-            ExtractAndCopyDirectory("Installer.Resources.ProtectedApp", Path.Combine(installPath, "App"));
-            
-            Log("Extracting Uninstaller files...");
-            ExtractAndCopyDirectory("Installer.Resources.Uninstaller", Path.Combine(installPath, "Uninstaller"));
+            catch (Exception ex)
+            {
+                Log($"Error during file extraction: {ex.Message}");
+                throw;
+            }
         }
 
         private static void CreateShortcuts(string appPath)

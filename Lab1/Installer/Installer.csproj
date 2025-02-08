@@ -36,15 +36,15 @@
   </ItemGroup>
 
   <!-- Copy complete application directories with dependencies -->
-  <Target Name="CopyAppFiles" AfterTargets="Build">
+  <Target Name="CopyAppFiles" AfterTargets="Publish">
     <Message Text="Copying application files with dependencies..." Importance="high" />
     
     <!-- Clean Resources directory -->
-    <RemoveDir Directories="$(OutDir)Resources" />
+    <RemoveDir Directories="$(PublishDir)Resources" />
     
-    <!-- Create subdirectories in build output Resources folder -->
-    <MakeDir Directories="$(OutDir)Resources\ProtectedApp" />
-    <MakeDir Directories="$(OutDir)Resources\Uninstaller" />
+    <!-- Create subdirectories in publish output Resources folder -->
+    <MakeDir Directories="$(PublishDir)Resources\ProtectedApp" />
+    <MakeDir Directories="$(PublishDir)Resources\Uninstaller" />
     
     <!-- Copy all files from published applications -->
     <ItemGroup>
@@ -53,20 +53,14 @@
     </ItemGroup>
     
     <Copy SourceFiles="@(ProtectedAppFiles)" 
-          DestinationFiles="@(ProtectedAppFiles->'$(OutDir)Resources\ProtectedApp\%(RecursiveDir)%(Filename)%(Extension)')"
+          DestinationFiles="@(ProtectedAppFiles->'$(PublishDir)Resources\ProtectedApp\%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="false" />
           
     <Copy SourceFiles="@(UninstallerFiles)" 
-          DestinationFiles="@(UninstallerFiles->'$(OutDir)Resources\Uninstaller\%(RecursiveDir)%(Filename)%(Extension)')"
+          DestinationFiles="@(UninstallerFiles->'$(PublishDir)Resources\Uninstaller\%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="false" />
 
-    <!-- Copy LicenseCore and its dependencies -->
-    <Copy SourceFiles="$(ProjectDir)\..\LicenseCore\bin\$(Configuration)\$(TargetFramework)\LicenseCore.dll"
-          DestinationFolder="$(OutDir)Resources\ProtectedApp"
-          SkipUnchangedFiles="false" />
-    <Copy SourceFiles="$(ProjectDir)\..\LicenseCore\bin\$(Configuration)\$(TargetFramework)\LicenseCore.dll"
-          DestinationFolder="$(OutDir)Resources\Uninstaller"
-          SkipUnchangedFiles="false" />
+    <Message Text="Files copied successfully" Importance="high" />
   </Target>
 
   <!-- Embed all resource files with folder structure -->
