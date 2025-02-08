@@ -38,10 +38,8 @@
       <UninstallerFiles Include="$(ProjectDir)\..\Uninstaller\bin\$(Configuration)\$(TargetFramework)\**\*.*" />
     </ItemGroup>
     
-    <Copy SourceFiles="@(ProtectedAppFiles)"
-          DestinationFiles="@(ProtectedAppFiles->'$(OutDir)Resources\ProtectedApp\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy SourceFiles="@(UninstallerFiles)"
-          DestinationFiles="@(UninstallerFiles->'$(OutDir)Resources\Uninstaller\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(ProtectedAppFiles)" DestinationFiles="@(ProtectedAppFiles->'$(OutDir)Resources\ProtectedApp\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(UninstallerFiles)" DestinationFiles="@(UninstallerFiles->'$(OutDir)Resources\Uninstaller\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
   <!-- Embed all resource files with folder structure -->
@@ -52,6 +50,17 @@
     <EmbeddedResource Include="Resources\Uninstaller\**\*.*">
       <LogicalName>Installer.Resources.Uninstaller.%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="IWshRuntimeLibrary">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>0</VersionMinor>
+      <VersionMajor>1</VersionMajor>
+      <Guid>f935dc20-1cf0-11d0-adb9-00c04fd58a0b</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
 
 </Project>

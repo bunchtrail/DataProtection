@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using IOFile = System.IO.File; // added alias to resolve ambiguous "File"
 using System.Security.Principal;
 using System.Windows.Forms;
 using System.Reflection;
@@ -7,6 +8,7 @@ using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using LicenseCore.Interfaces;
 using LicenseCore.Services;
+using IWshRuntimeLibrary; // Added to create proper shortcuts
 
 namespace Installer
 {
@@ -38,17 +40,17 @@ namespace Installer
                 // Создаём директорию для лога, если её нет
                 Directory.CreateDirectory(Path.GetDirectoryName(logPath));
                 
-                File.AppendAllText(logPath, logMessage);
+                IOFile.AppendAllText(logPath, logMessage);
                 Debug.WriteLine(logMessage);
 
                 // Если директория установки создана, но лог во временной папке - переместим его
                 if (Directory.Exists(DefaultInstallPath) && logDir != DefaultInstallPath)
                 {
                     var targetLogPath = Path.Combine(DefaultInstallPath, LogFile);
-                    if (File.Exists(logPath))
+                    if (IOFile.Exists(logPath))
                     {
-                        File.Copy(logPath, targetLogPath, true);
-                        File.Delete(logPath);
+                        IOFile.Copy(logPath, targetLogPath, true);
+                        IOFile.Delete(logPath);
                     }
                 }
             }
@@ -152,7 +154,7 @@ namespace Installer
                 var targetFile = Path.Combine(targetPath, fileName);
                 Log($"Extracting {resourceName} to {targetFile}");
                 
-                using (var fileStream = File.Create(targetFile))
+                using (var fileStream = IOFile.Create(targetFile))
                 {
                     stream.CopyTo(fileStream);
                 }
@@ -188,7 +190,7 @@ namespace Installer
                 // Create directory if it doesn't exist
                 Directory.CreateDirectory(Path.GetDirectoryName(targetFile));
                 
-                using (var fileStream = File.Create(targetFile))
+                using (var fileStream = IOFile.Create(targetFile))
                 {
                     stream.CopyTo(fileStream);
                 }
@@ -204,9 +206,8 @@ namespace Installer
             ExtractAndCopyDirectory("Installer.Resources.Uninstaller", Path.Combine(installPath, "Uninstaller"));
         }
 
-        private static void CreateShortcuts(string installPath)
+        private static void CreateShortcuts(string appPath)
         {
-            var appPath = Path.Combine(installPath, "ProtectedApp.exe");
             var isAdmin = IsAdministrator();
 
             // Создаем ярлык в меню Пуск
@@ -229,14 +230,14 @@ namespace Installer
         {
             try
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(shortcutPath));
-                using (var writer = new StreamWriter(shortcutPath))
-                {
-                    writer.WriteLine("[InternetShortcut]");
-                    writer.WriteLine($"URL=file:///{targetPath.Replace('\\', '/')}");
-                    writer.WriteLine("IconIndex=0");
-                    writer.WriteLine($"IconFile={targetPath.Replace('\\', '/')}");
-                }
+                // Create a shortcut using Windows Script Host COM API.
+                var shell = new WshShell();
+                var shortcut = (IWshShortcut)shell.CreateShortcut(shortcutPath);
+                shortcut.TargetPath = targetPath;
+                shortcut.WorkingDirectory = Path.GetDirectoryName(targetPath);
+                shortcut.Description = "Shortcut for ProtectedApp";
+                shortcut.IconLocation = targetPath;
+                shortcut.Save();
             }
             catch
             {
