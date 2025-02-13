@@ -132,22 +132,32 @@ namespace Installer
         {
             try
             {
-                // Создаем директорию для установки
+                // Проверяем, существует ли директория и очищаем её
                 form.UpdateProgress(0, "Подготовка к установке...");
-                Directory.CreateDirectory(installPath);
-                Log($"Created installation directory: {installPath}");
+                if (Directory.Exists(installPath))
+                {
+                    try
+                    {
+                        Directory.Delete(installPath, true);
+                        Log($"Cleaned up existing installation at: {installPath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Log($"Warning: Could not clean up existing installation: {ex.Message}");
+                    }
+                }
 
                 if (form.IsCancelled) return;
 
                 // Extract files
-                form.UpdateProgress(20, "Распаковка файлов приложения...");
+                form.UpdateProgress(20, "Установка файлов приложения...");
                 ExtractFiles(installPath);
 
                 if (form.IsCancelled) return;
 
                 // Update shortcuts
                 form.UpdateProgress(60, "Создание ярлыков...");
-                CreateShortcuts(Path.Combine(installPath, "App", "ProtectedApp.exe"));
+                CreateShortcuts(Path.Combine(installPath, "Project1.exe"));
 
                 if (form.IsCancelled) return;
 
@@ -159,12 +169,32 @@ namespace Installer
 
                 form.UpdateProgress(100, "Установка завершена");
                 form.OnInstallationComplete(true);
+
+                // Записываем путь установки в реестр для деинсталлятора
+                SaveInstallationPath(installPath);
             }
             catch (Exception ex)
             {
                 Log($"Installation failed: {ex.Message}");
                 Log($"Stack trace: {ex.StackTrace}");
                 form.OnInstallationComplete(false);
+            }
+        }
+
+        private static void SaveInstallationPath(string installPath)
+        {
+            try
+            {
+                var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(
+                    @"Software\ProtectedApp",
+                    true);
+                key?.SetValue("InstallPath", installPath);
+                Log($"Saved installation path to registry: {installPath}");
+            }
+            catch (Exception ex)
+            {
+                Log($"Failed to save installation path to registry: {ex.Message}");
+                // Не выбрасываем исключение, так как это не критическая ошибка
             }
         }
 
@@ -305,109 +335,58 @@ namespace Installer
 
         private static void ExtractFiles(string installPath)
         {
-            // Clean up any existing installation
-            if (Directory.Exists(installPath))
+            try
             {
-                try
+                Log($"Starting file extraction to {installPath}");
+
+                // Создаем директорию для установки
+                Directory.CreateDirectory(installPath);
+
+                // Получаем путь к папке с ресурсами (рядом с exe инсталлятора)
+                var installerDir = AppContext.BaseDirectory;
+                var protectedAppSourcePath = Path.Combine(installerDir, "Resources", "ProtectedApp");
+                var uninstallerSourcePath = Path.Combine(installerDir, "Resources", "Uninstaller");
+
+                // Проверяем наличие исходных файлов
+                if (!Directory.Exists(protectedAppSourcePath))
+                    throw new DirectoryNotFoundException($"Protected app directory not found at: {protectedAppSourcePath}");
+                if (!Directory.Exists(uninstallerSourcePath))
+                    throw new DirectoryNotFoundException($"Uninstaller directory not found at: {uninstallerSourcePath}");
+
+                // Копируем все файлы защищенного приложения
+                foreach (var file in Directory.GetFiles(protectedAppSourcePath, "*.*", SearchOption.AllDirectories))
                 {
-                    Directory.Delete(installPath, true);
-                    Log($"Cleaned up existing installation at: {installPath}");
+                    var relativePath = file.Substring(protectedAppSourcePath.Length).TrimStart('\\', '/');
+                    var targetPath = Path.Combine(installPath, relativePath);
+                    var targetDir = Path.GetDirectoryName(targetPath);
+
+                    if (!string.IsNullOrEmpty(targetDir))
+                        Directory.CreateDirectory(targetDir);
+
+                    File.Copy(file, targetPath, true);
+                    Log($"Copied: {relativePath}");
                 }
-                catch (Exception ex)
+
+                // Копируем все файлы деинсталлятора
+                foreach (var file in Directory.GetFiles(uninstallerSourcePath, "*.*", SearchOption.AllDirectories))
                 {
-                    Log($"Warning: Could not clean up existing installation: {ex.Message}");
+                    var relativePath = file.Substring(uninstallerSourcePath.Length).TrimStart('\\', '/');
+                    var targetPath = Path.Combine(installPath, relativePath);
+                    var targetDir = Path.GetDirectoryName(targetPath);
+
+                    if (!string.IsNullOrEmpty(targetDir))
+                        Directory.CreateDirectory(targetDir);
+
+                    File.Copy(file, targetPath, true);
+                    Log($"Copied: {relativePath}");
                 }
+
+                Log("All files copied successfully");
             }
-
-            // Create fresh installation directory
-            Directory.CreateDirectory(installPath);
-            Log($"Created installation directory: {installPath}");
-
-            // Create subdirectories
-            var appPath = Path.Combine(installPath, "App");
-            var uninstallerPath = Path.Combine(installPath, "Uninstaller");
-            Directory.CreateDirectory(appPath);
-            Directory.CreateDirectory(uninstallerPath);
-
-            Log("Extracting ProtectedApp files...");
-            ExtractAndCopyDirectory("Installer.Resources.ProtectedApp", appPath);
-            
-            Log("Extracting Uninstaller files...");
-            ExtractAndCopyDirectory("Installer.Resources.Uninstaller", uninstallerPath);
-
-            // Copy LicenseCore and its dependencies to both App and Uninstaller directories
-            Log("Copying LicenseCore and dependencies...");
-            var licenseCoreDll = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "LicenseCore.dll");
-            if (File.Exists(licenseCoreDll))
+            catch (Exception ex)
             {
-                File.Copy(licenseCoreDll, Path.Combine(appPath, "LicenseCore.dll"), true);
-                File.Copy(licenseCoreDll, Path.Combine(uninstallerPath, "LicenseCore.dll"), true);
-                Log("Copied LicenseCore.dll");
-            }
-
-            // Copy required dependencies
-            var dependencies = new[]
-            {
-                "Microsoft.Extensions.DependencyInjection.dll",
-                "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
-                "System.Management.dll"
-            };
-
-            foreach (var dependency in dependencies)
-            {
-                var sourcePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), dependency);
-                if (File.Exists(sourcePath))
-                {
-                    File.Copy(sourcePath, Path.Combine(appPath, dependency), true);
-                    File.Copy(sourcePath, Path.Combine(uninstallerPath, dependency), true);
-                    Log($"Copied {dependency}");
-                }
-                else
-                {
-                    Log($"Warning: Dependency {dependency} not found");
-                }
-            }
-
-            // Copy runtime folders if they exist
-            var runtimesPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "runtimes");
-            if (Directory.Exists(runtimesPath))
-            {
-                CopyDirectory(runtimesPath, Path.Combine(appPath, "runtimes"));
-                CopyDirectory(runtimesPath, Path.Combine(uninstallerPath, "runtimes"));
-                Log("Copied runtime dependencies");
-            }
-
-            // Copy config files
-            foreach (var configFile in Directory.GetFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "*.config"))
-            {
-                var fileName = Path.GetFileName(configFile);
-                File.Copy(configFile, Path.Combine(appPath, fileName), true);
-                File.Copy(configFile, Path.Combine(uninstallerPath, fileName), true);
-                Log($"Copied config file: {fileName}");
-            }
-
-            Log("All files copied successfully");
-        }
-
-        private static void CopyDirectory(string sourceDir, string destinationDir)
-        {
-            // Create the destination directory
-            Directory.CreateDirectory(destinationDir);
-
-            // Copy all files
-            foreach (string file in Directory.GetFiles(sourceDir))
-            {
-                string fileName = Path.GetFileName(file);
-                string destFile = Path.Combine(destinationDir, fileName);
-                File.Copy(file, destFile, true);
-            }
-
-            // Copy all subdirectories
-            foreach (string dir in Directory.GetDirectories(sourceDir))
-            {
-                string dirName = Path.GetFileName(dir);
-                string destDir = Path.Combine(destinationDir, dirName);
-                CopyDirectory(dir, destDir);
+                Log($"Error during file extraction: {ex.Message}");
+                throw;
             }
         }
 
