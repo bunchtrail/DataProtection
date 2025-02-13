@@ -106,6 +106,9 @@ namespace Uninstaller
 
                 // Завершаем процесс деинсталлятора
                 Environment.Exit(0);
+            } catch
+            {
+                
             }
         }
     }

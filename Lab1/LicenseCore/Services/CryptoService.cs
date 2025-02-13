@@ -13,7 +13,7 @@ namespace LicenseCore.Services
         public CryptoService()
         {
             // В реальном приложении эти значения должны быть защищены и храниться в безопасном месте
-            _key = Encoding.UTF8.GetBytes("YourSecretKey123YourSecretKey123"); // 32 bytes for AES-256
+            _key = Encoding.UTF8.GetBytes("SecretKey1231234SecretKey1231234"); // 32 bytes for AES-256
             _iv = Encoding.UTF8.GetBytes("1234567890123456"); // 16 bytes for AES
         }
 
