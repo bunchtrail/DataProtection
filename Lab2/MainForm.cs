@@ -11,8 +11,8 @@ public partial class MainForm : Form
     {
         Color.FromArgb(0, 120, 215),    // Синий
         Color.FromArgb(0, 153, 188),    // Бирюзовый
-        Color.FromArgb(0, 120, 215),    // Синий (RSA теперь активна)
-        Color.FromArgb(122, 117, 116),  // Серый (для неактивных задач)
+        Color.FromArgb(0, 120, 215),    // Синий (RSA)
+        Color.FromArgb(0, 153, 188),    // Бирюзовый (Adler32)
         Color.FromArgb(122, 117, 116)   // Серый (для неактивных задач)
     };
 
@@ -127,8 +127,7 @@ public partial class MainForm : Form
         }
         else if (selectedTask.Contains("Задание №4"))
         {
-            MessageBox.Show("Задание №4 будет реализовано позже");
-            return;
+            taskForm = new Adler32Form();
         }
         else if (selectedTask.Contains("Задание №5"))
         {
