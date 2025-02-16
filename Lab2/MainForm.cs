@@ -131,8 +131,7 @@ public partial class MainForm : Form
         }
         else if (selectedTask.Contains("Задание №5"))
         {
-            MessageBox.Show("Задание №5 будет реализовано позже");
-            return;
+            taskForm = new DigitalSignatureForm();
         }
 
         if (taskForm is not null)
