@@ -26,16 +26,19 @@ namespace Lab2
             comboBoxTasks.FormattingEnabled = true;
             comboBoxTasks.Location = new Point(12, 12);
             comboBoxTasks.Name = "comboBoxTasks";
-            comboBoxTasks.Size = new Size(580, 23);
+            comboBoxTasks.Size = new Size(580, 25);
             comboBoxTasks.TabIndex = 0;
-            comboBoxTasks.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            comboBoxTasks.Font = new Font("Segoe UI Semibold", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
             comboBoxTasks.BackColor = Color.White;
             comboBoxTasks.ForeColor = Color.FromArgb(64, 64, 64);
+            comboBoxTasks.DrawMode = DrawMode.OwnerDrawFixed;
+            comboBoxTasks.ItemHeight = 25;
+            comboBoxTasks.DrawItem += comboBoxTasks_DrawItem;
 
             // buttonOpenTask
             buttonOpenTask.Location = new Point(598, 12);
             buttonOpenTask.Name = "buttonOpenTask";
-            buttonOpenTask.Size = new Size(75, 23);
+            buttonOpenTask.Size = new Size(75, 25);
             buttonOpenTask.TabIndex = 1;
             buttonOpenTask.Text = "Открыть";
             buttonOpenTask.FlatStyle = FlatStyle.Flat;
@@ -46,6 +49,7 @@ namespace Lab2
             buttonOpenTask.BackColor = Color.White;
             buttonOpenTask.ForeColor = Color.FromArgb(0, 120, 215);
             buttonOpenTask.Cursor = Cursors.Hand;
+            buttonOpenTask.UseVisualStyleBackColor = false;
             buttonOpenTask.Click += buttonOpenTask_Click;
 
             // contentPanel
@@ -61,7 +65,7 @@ namespace Lab2
             // buttonBack
             buttonBack.Location = new Point(679, 12);
             buttonBack.Name = "buttonBack";
-            buttonBack.Size = new Size(75, 23);
+            buttonBack.Size = new Size(75, 25);
             buttonBack.TabIndex = 3;
             buttonBack.Text = "Назад";
             buttonBack.FlatStyle = FlatStyle.Flat;
@@ -72,6 +76,7 @@ namespace Lab2
             buttonBack.BackColor = Color.White;
             buttonBack.ForeColor = Color.FromArgb(0, 120, 215);
             buttonBack.Cursor = Cursors.Hand;
+            buttonBack.UseVisualStyleBackColor = false;
             buttonBack.Visible = false;
             buttonBack.Click += buttonBack_Click;
 

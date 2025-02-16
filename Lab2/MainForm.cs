@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace Lab2;
@@ -6,6 +7,14 @@ namespace Lab2;
 public partial class MainForm : Form
 {
     private Form? currentForm;
+    private readonly Color[] taskColors = new Color[] 
+    {
+        Color.FromArgb(0, 120, 215),    // Синий
+        Color.FromArgb(0, 153, 188),    // Бирюзовый
+        Color.FromArgb(0, 120, 215),    // Синий (RSA теперь активна)
+        Color.FromArgb(122, 117, 116),  // Серый (для неактивных задач)
+        Color.FromArgb(122, 117, 116)   // Серый (для неактивных задач)
+    };
 
     public MainForm()
     {
@@ -22,6 +31,63 @@ public partial class MainForm : Form
         comboBoxTasks.Items.Add("Задание №5: Электронная цифровая подпись");
 
         comboBoxTasks.SelectedIndex = 0;
+    }
+
+    private void comboBoxTasks_DrawItem(object sender, DrawItemEventArgs e)
+    {
+        if (e.Index < 0) return;
+
+        // Получаем ComboBox
+        ComboBox combo = (ComboBox)sender;
+        string text = combo.Items[e.Index].ToString() ?? string.Empty;
+        
+        // Определяем цвета
+        Color textColor = taskColors[e.Index];
+        Color backColor = e.BackColor;
+        
+        // При наведении или выборе меняем цвет фона
+        if ((e.State & DrawItemState.Selected) == DrawItemState.Selected ||
+            (e.State & DrawItemState.Focus) == DrawItemState.Focus)
+        {
+            backColor = Color.FromArgb(229, 241, 251);
+            using var backBrush = new SolidBrush(backColor);
+            e.Graphics.FillRectangle(backBrush, e.Bounds);
+        }
+        else
+        {
+            using var backBrush = new SolidBrush(backColor);
+            e.Graphics.FillRectangle(backBrush, e.Bounds);
+        }
+        
+        // Рисуем маркер слева
+        using (var markerBrush = new SolidBrush(textColor))
+        {
+            var markerBounds = new Rectangle(
+                e.Bounds.X + 3,
+                e.Bounds.Y + 4,
+                3,
+                e.Bounds.Height - 8
+            );
+            e.Graphics.FillRectangle(markerBrush, markerBounds);
+        }
+        
+        // Рисуем текст
+        var textBounds = new Rectangle(
+            e.Bounds.X + 10,
+            e.Bounds.Y,
+            e.Bounds.Width - 12,
+            e.Bounds.Height
+        );
+        
+        TextRenderer.DrawText(
+            e.Graphics,
+            text,
+            e.Font,
+            textBounds,
+            textColor,
+            backColor,
+            TextFormatFlags.VerticalCenter | TextFormatFlags.Left
+        );
     }
 
     private void LoadFormToPanel(Form form)
@@ -57,8 +123,7 @@ public partial class MainForm : Form
         }
         else if (selectedTask.Contains("Задание №3"))
         {
-            MessageBox.Show("Задание №3 будет реализовано позже");
-            return;
+            taskForm = new RSAForm();
         }
         else if (selectedTask.Contains("Задание №4"))
         {
