@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoApp.Core", "CryptoApp.Core\CryptoApp.Core.csproj", "{2DE1600E-4F4F-4B6E-ABAF-1773F3F9D2CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoApp.Algorithms", "CryptoApp.Algorithms\CryptoApp.Algorithms.csproj", "{598AADF5-1CF9-4455-8D68-0EBB8BD0D933}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoApp.Services", "CryptoApp.Services\CryptoApp.Services.csproj", "{EE404AB8-7E9B-471E-B23A-B0E89229470D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoApp.Tests", "CryptoApp.Tests\CryptoApp.Tests.csproj", "{3E7CE537-D42F-421A-9853-19960D158DE4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoApp.UI", "CryptoApp.UI\CryptoApp.UI.csproj", "{0B998A13-CED2-4C0A-A6DA-0AAA11477431}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2DE1600E-4F4F-4B6E-ABAF-1773F3F9D2CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DE1600E-4F4F-4B6E-ABAF-1773F3F9D2CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DE1600E-4F4F-4B6E-ABAF-1773F3F9D2CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DE1600E-4F4F-4B6E-ABAF-1773F3F9D2CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{598AADF5-1CF9-4455-8D68-0EBB8BD0D933}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{598AADF5-1CF9-4455-8D68-0EBB8BD0D933}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{598AADF5-1CF9-4455-8D68-0EBB8BD0D933}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{598AADF5-1CF9-4455-8D68-0EBB8BD0D933}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE404AB8-7E9B-471E-B23A-B0E89229470D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE404AB8-7E9B-471E-B23A-B0E89229470D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE404AB8-7E9B-471E-B23A-B0E89229470D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE404AB8-7E9B-471E-B23A-B0E89229470D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E7CE537-D42F-421A-9853-19960D158DE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E7CE537-D42F-421A-9853-19960D158DE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E7CE537-D42F-421A-9853-19960D158DE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E7CE537-D42F-421A-9853-19960D158DE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B998A13-CED2-4C0A-A6DA-0AAA11477431}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B998A13-CED2-4C0A-A6DA-0AAA11477431}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B998A13-CED2-4C0A-A6DA-0AAA11477431}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B998A13-CED2-4C0A-A6DA-0AAA11477431}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
