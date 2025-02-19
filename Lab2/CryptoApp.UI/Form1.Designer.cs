@@ -6,6 +6,10 @@ partial class Form1
     ///  Required designer variable.
     /// </summary>
     private System.ComponentModel.IContainer components = null;
+    private TextBox textBoxEncoded;
+    private TextBox textBoxDecoded;
+    private TextBox textBoxMatrix;
+    private Button buttonDecode;
 
     /// <summary>
     ///  Clean up any resources being used.
@@ -28,10 +32,51 @@ partial class Form1
     /// </summary>
     private void InitializeComponent()
     {
-        this.components = new System.ComponentModel.Container();
-        this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-        this.ClientSize = new System.Drawing.Size(800, 450);
-        this.Text = "Form1";
+        textBoxEncoded = new TextBox();
+        textBoxDecoded = new TextBox();
+        textBoxMatrix = new TextBox();
+        buttonDecode = new Button();
+
+        // 
+        // textBoxEncoded
+        // 
+        textBoxEncoded.Location = new System.Drawing.Point(12, 12);
+        textBoxEncoded.Multiline = true;
+        textBoxEncoded.Size = new System.Drawing.Size(300, 100);
+
+        // 
+        // textBoxMatrix
+        // 
+        textBoxMatrix.Location = new System.Drawing.Point(12, 118);
+        textBoxMatrix.Size = new System.Drawing.Size(300, 23);
+
+        // 
+        // buttonDecode
+        // 
+        buttonDecode.Location = new System.Drawing.Point(12, 147);
+        buttonDecode.Size = new System.Drawing.Size(75, 23);
+        buttonDecode.Text = "Decode";
+        buttonDecode.Click += buttonDecode_Click;
+
+        // 
+        // textBoxDecoded
+        // 
+        textBoxDecoded.Location = new System.Drawing.Point(12, 176);
+        textBoxDecoded.Multiline = true;
+        textBoxDecoded.Size = new System.Drawing.Size(300, 100);
+
+        // 
+        // Form1
+        // 
+        AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+        AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+        ClientSize = new System.Drawing.Size(324, 291);
+        Controls.Add(textBoxEncoded);
+        Controls.Add(textBoxMatrix);
+        Controls.Add(buttonDecode);
+        Controls.Add(textBoxDecoded);
+        Name = "Form1";
+        Text = "Polybius Square Decoder";
     }
 
     #endregion
