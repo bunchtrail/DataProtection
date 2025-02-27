@@ -6,9 +6,12 @@ using System.Windows.Forms;
 
 namespace Lab2;
 
+// Форма для демонстрации работы алгоритма "Кузнечик" (ГОСТ 34.12-2018)
+// Здесь реализована функция вычисления имитовставки (MAC) для заданного сообщения и ключа.
 public partial class KuznechikForm : Form
 {
-    // Таблица подстановок (S-box) из ГОСТ 34.12-2018
+    // Таблица подстановок (S-box) из стандарта ГОСТ 34.12-2018.
+    // Используется для нелинейного преобразования данных.
     private static readonly byte[] Sbox = new byte[] {
         0xFC, 0xEE, 0xDD, 0x11, 0xCF, 0x6E, 0x31, 0x16, 0xFB, 0xC4, 0xFA, 0xDA, 0x23, 0xC5, 0x04, 0x4D,
         0xE9, 0x77, 0xF0, 0xDB, 0x93, 0x2E, 0x99, 0xBA, 0x17, 0x36, 0xF1, 0xBB, 0x14, 0xCD, 0x5F, 0xC1,
@@ -28,82 +31,104 @@ public partial class KuznechikForm : Form
         0x59, 0xA6, 0x74, 0xD2, 0xE6, 0xF4, 0xB4, 0xC0, 0xD1, 0x66, 0xAF, 0xC2, 0x39, 0x4B, 0x63, 0xB6
     };
 
-    // Матрица линейного преобразования L из ГОСТ 34.12-2018
+    // Матрица линейного преобразования L из ГОСТ 34.12-2018.
+    // Используется для смешивания байтов блока на этапе линейного преобразования.
     private static readonly byte[] LVector = new byte[] {
         0x94, 0x20, 0x85, 0x10, 0xC2, 0xC0, 0x01, 0xFB,
         0x01, 0x94, 0x20, 0x85, 0x10, 0xC2, 0xC0, 0x01
     };
 
-    // Тестовые данные из задания
+    // Тестовые данные: пример сообщения и ключа, заданные в условии.
     private const string TestMessage = "Кирпич ни с того ни с сего никому и никогда на голову не свалится.";
     private const string TestKey = "4079834365408257140643820486045333485254617662287735457960634880";
 
+    // Конструктор формы, инициализирующий компоненты.
     public KuznechikForm()
     {
         InitializeComponent();
     }
 
+    /// <summary>
+    /// Обработчик нажатия кнопки "Вставить тестовые данные".
+    /// Заполняет поля ввода тестовыми сообщением и ключом.
+    /// </summary>
     private void buttonInsertTestData_Click(object sender, EventArgs e)
     {
         textBoxMessage.Text = TestMessage;
         textBoxKey.Text = TestKey;
     }
 
+    /// <summary>
+    /// Обработчик нажатия кнопки "Зашифровать".
+    /// Выполняет вычисление имитовставки для введённого сообщения с использованием заданного ключа.
+    /// </summary>
     private void buttonEncrypt_Click(object sender, EventArgs e)
     {
+        // Получаем исходное сообщение и ключ из текстовых полей
         string inputMessage = textBoxMessage.Text;
         string keyString = textBoxKey.Text;
 
         try
         {
-            // Преобразуем ключ из строки в массив байт
+            // Преобразуем строковое представление ключа в массив байт.
             byte[] key = ConvertKeyStringToByteArray(keyString);
 
-            // Преобразуем текст в массив байт с использованием Windows-1251
-            // Используем эту кодировку для совместимости с ГОСТ-приложениями,
-            // где она часто используется для русского текста
+            // Преобразуем сообщение в массив байт с использованием кодировки Windows-1251.
+            // Эта кодировка часто используется в российских криптографических приложениях.
             byte[] messageBytes = Encoding.GetEncoding("windows-1251").GetBytes(inputMessage);
 
-            // Вычисляем имитовставку
+            // Вычисляем имитовставку для сообщения с использованием ключа
             byte[] mac = ComputeKuznechikImitovstavka(messageBytes, key);
 
-            // Преобразуем результат в шестнадцатеричную строку
+            // Преобразуем полученный MAC в шестнадцатеричное представление для вывода
             string macHex = BitConverter.ToString(mac).Replace("-", "");
             textBoxOutput.Text = macHex;
         }
         catch (Exception ex)
         {
+            // В случае ошибки выводим сообщение об ошибке
             MessageBox.Show($"Произошла ошибка: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 
+    /// <summary>
+    /// Вычисляет имитовставку (MAC) с использованием алгоритма "Кузнечик".
+    /// Алгоритм разбивает сообщение на блоки по 16 байт, затем для каждого блока выполняется:
+    /// 1. Побитовое XOR-сложение с текущим значением MAC.
+    /// 2. Шифрование полученного результата с помощью блока шифрования Kuznechik.
+    /// Итоговое значение MAC возвращается как результат.
+    /// </summary>
     private byte[] ComputeKuznechikImitovstavka(byte[] message, byte[] key)
     {
-        const int blockSize = 16; // Размер блока 128 бит
-        byte[] mac = new byte[blockSize]; // Начальное значение MAC
+        const int blockSize = 16; // Размер блока составляет 128 бит (16 байт)
+        byte[] mac = new byte[blockSize]; // Начальное значение MAC (инициализировано нулями)
 
-        // Паддинг сообщения
+        // Паддинг (дополнение) сообщения до кратного размера блока, если необходимо
         byte[] paddedMessage = PadMessage(message, blockSize);
 
-        // Проходим по каждому блоку
+        // Обрабатываем сообщение блок за блоком
         for (int i = 0; i < paddedMessage.Length; i += blockSize)
         {
             byte[] block = new byte[blockSize];
             Array.Copy(paddedMessage, i, block, 0, blockSize);
 
-            // XOR текущего MAC с блоком сообщения
+            // Выполняем XOR между текущим MAC и блоком сообщения
             for (int j = 0; j < blockSize; j++)
             {
                 mac[j] ^= block[j];
             }
 
-            // Шифруем полученный блок
+            // Шифруем полученный результат с использованием алгоритма Kuznechik
             mac = KuznechikEncryptBlock(mac, key);
         }
 
         return mac;
     }
 
+    /// <summary>
+    /// Дополняет (паддинг) сообщение до размера, кратного размеру блока.
+    /// Если длина сообщения уже кратна размеру блока, возвращается исходное сообщение.
+    /// </summary>
     private static byte[] PadMessage(byte[] message, int blockSize)
     {
         int remainder = message.Length % blockSize;
@@ -117,15 +142,23 @@ public partial class KuznechikForm : Form
         return padded;
     }
 
+    /// <summary>
+    /// Преобразует строковое представление ключа в массив байт.
+    /// Ключ сначала преобразуется в BigInteger, затем в массив байт.
+    /// Если длина полученного массива меньше 32 байт, он дополняется нулями, а если больше – усекается до 32 байт.
+    /// </summary>
     private static byte[] ConvertKeyStringToByteArray(string keyString)
     {
+        // Проверка на null или пустую строку
         ArgumentException.ThrowIfNullOrEmpty(keyString);
 
         try
         {
+            // Преобразуем строку в число BigInteger
             BigInteger bigKey = BigInteger.Parse(keyString);
             byte[] keyBytes = bigKey.ToByteArray();
 
+            // Обеспечиваем длину ключа ровно 32 байта (256 бит)
             if (keyBytes.Length < 32)
             {
                 byte[] padded = new byte[32];
@@ -144,56 +177,69 @@ public partial class KuznechikForm : Form
         }
     }
 
+    /// <summary>
+    /// Шифрует один блок данных размером 16 байт с использованием алгоритма "Кузнечик".
+    /// В качестве ключа используется 32-байтовый массив.
+    /// Процесс включает нелинейное преобразование (S-box) и линейное преобразование (L).
+    /// </summary>
     private byte[] KuznechikEncryptBlock(byte[] block, byte[] key)
     {
+        // Проверка входных данных на null и корректную длину
         ArgumentNullException.ThrowIfNull(block);
         ArgumentNullException.ThrowIfNull(key);
 
         if (block.Length != 16)
             throw new ArgumentException("Размер блока должен быть 16 байт (128 бит)", nameof(block));
-        
+
         if (key.Length != 32)
             throw new ArgumentException("Размер ключа должен быть 32 байта (256 бит)", nameof(key));
 
-        // Копируем входной блок
+        // Копируем исходный блок в рабочий массив state
         byte[] state = new byte[16];
         Array.Copy(block, state, 16);
 
-        // Применяем нелинейное преобразование (S-box)
+        // Применяем нелинейное преобразование S-box к каждому байту блока
         for (int i = 0; i < 16; i++)
         {
             state[i] = Sbox[state[i]];
         }
 
-        // Применяем линейное преобразование L
+        // Применяем линейное преобразование L к блоку.
+        // Выполняется 16 итераций, на каждой из которых вычисляется новый байт x через умножение в поле Галуа GF(2^8)
         for (int j = 0; j < 16; j++)
         {
             byte x = 0;
             for (int i = 0; i < 16; i++)
             {
-                // Умножение в поле Галуа GF(2^8)
+                // Инициализируем temp текущим байтом state[i]
                 byte temp = state[i];
+                // Для каждого бита байта выполняем умножение в поле GF(2^8)
                 for (int k = 0; k < 8; k++)
                 {
+                    // Если соответствующий бит в LVector установлен, выполняем XOR с temp
                     if ((LVector[i] & (1 << (7 - k))) != 0)
                     {
                         x ^= temp;
                     }
+                    // Определяем перенос (carry) старшего бита
                     byte carry = (byte)(temp & 0x80);
+                    // Сдвигаем temp влево на 1 бит
                     temp <<= 1;
+                    // Если был перенос, выполняем XOR с полиномом (0xC3 соответствует x^8 + x^7 + x^6 + x + 1)
                     if (carry != 0)
                     {
-                        temp ^= 0xC3; // x^8 + x^7 + x^6 + x + 1
+                        temp ^= 0xC3;
                     }
                 }
             }
-            // Сохраняем результат
+            // Выполняем циклический сдвиг: копируем state, сдвигая байты влево на 1 позицию, и устанавливаем последний байт равным x
             byte[] newState = new byte[16];
             Array.Copy(state, 1, newState, 0, 15);
             newState[15] = x;
             state = newState;
         }
 
+        // Возвращаем преобразованный блок как результат шифрования
         return state;
     }
-} 
+}
