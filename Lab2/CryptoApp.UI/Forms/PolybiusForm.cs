@@ -109,7 +109,7 @@ namespace Lab2
                 MessageBox.Show("Введите текст для декодирования.");
                 return;
             }
-
+            //!!!!!!------
             // Разбиваем введённую строку матрицы на отдельные строки, используя запятую в качестве разделителя
             string[] rows = matrixText.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                                     .Select(s => s.Trim())
@@ -140,7 +140,7 @@ namespace Lab2
             StringBuilder decodedMessage = new StringBuilder();
             foreach (string token in tokens)
             {
-                // Если токен состоит из одного символа, добавляем ведущий ноль (например, "4" становится "04")
+                // Если токен состоит из одного символа, добавляем ведущий ноль (например, "3" становится "03")
                 string processedToken = token.Length == 1 ? "0" + token : token;
 
                 // Если длина токена после обработки не равна 2, выводим сообщение об ошибке

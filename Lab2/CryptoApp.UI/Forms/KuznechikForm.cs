@@ -112,7 +112,7 @@ public partial class KuznechikForm : Form
             byte[] block = new byte[blockSize];
             Array.Copy(paddedMessage, i, block, 0, blockSize);
 
-            // Выполняем XOR между текущим MAC и блоком сообщения
+            // Выполняем XOR между текущим MAC и блоком сообщения, чтобы предотвратить простые связи между входом и выходом.
             for (int j = 0; j < blockSize; j++)
             {
                 mac[j] ^= block[j];
