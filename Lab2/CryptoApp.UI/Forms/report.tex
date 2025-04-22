@@ -1,0 +1,708 @@
+\documentclass[a4paper, 14pt]{extarticle}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1, T2A]{fontenc}
+\usepackage[russian]{babel}
+\usepackage{mathtools, amssymb, amsmath} % Объединение математических пакетов
+\usepackage{graphicx}
+\usepackage[a4paper, top=1.5cm, bottom=1.5cm, left=2cm, right=1.5cm, marginparwidth=1.75cm]{geometry}
+\graphicspath{{pictures/}}
+\DeclareGraphicsExtensions{.pdf,.png,.jpg}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{setspace}
+\setstretch{1.25}
+\usepackage{microtype}
+\usepackage{fancyvrb} 
+\usepackage{listings}
+\usepackage{xcolor} 
+\usepackage{tabularx} 
+\usepackage{indentfirst}
+\lstdefinestyle{sharpc}{language=[Sharp]C}
+
+% Устанавливаем красную строку и убираем междуабзацные интервалы
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+
+% Определение цветов для листинга кода
+\definecolor{backcolour}{rgb}{0.95, 0.95, 0.92}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{codemagenta}{rgb}{0.58,0,0.82}
+
+% Настройки отображения кода
+\lstset{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\footnotesize\ttfamily,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    literate={а}{{\selectfont\char224}}1
+             {б}{{\selectfont\char225}}1
+             {в}{{\selectfont\char226}}1
+             {г}{{\selectfont\char227}}1
+             {д}{{\selectfont\char228}}1
+             {е}{{\selectfont\char229}}1
+             {ё}{{\selectfont\char168}}1
+             {ж}{{\selectfont\char230}}1
+             {з}{{\selectfont\char231}}1
+             {и}{{\selectfont\char232}}1
+             {й}{{\selectfont\char233}}1
+             {к}{{\selectfont\char234}}1
+             {л}{{\selectfont\char235}}1
+             {м}{{\selectfont\char236}}1
+             {н}{{\selectfont\char237}}1
+             {о}{{\selectfont\char238}}1
+             {п}{{\selectfont\char239}}1
+             {р}{{\selectfont\char240}}1
+             {с}{{\selectfont\char241}}1
+             {т}{{\selectfont\char242}}1
+             {у}{{\selectfont\char243}}1
+             {ф}{{\selectfont\char244}}1
+             {х}{{\selectfont\char245}}1
+             {ц}{{\selectfont\char246}}1
+             {ч}{{\selectfont\char247}}1
+             {ш}{{\selectfont\char248}}1
+             {щ}{{\selectfont\char249}}1
+             {ъ}{{\selectfont\char250}}1
+             {ы}{{\selectfont\char251}}1
+             {ь}{{\selectfont\char252}}1
+             {э}{{\selectfont\char253}}1
+             {ю}{{\selectfont\char254}}1
+             {я}{{\selectfont\char255}}1
+             {А}{{\selectfont\char192}}1
+             {Б}{{\selectfont\char193}}1
+             {В}{{\selectfont\char194}}1
+             {Г}{{\selectfont\char195}}1
+             {Д}{{\selectfont\char196}}1
+             {Е}{{\selectfont\char197}}1
+             {Ё}{{\selectfont\char168}}1
+             {Ж}{{\selectfont\char198}}1
+             {З}{{\selectfont\char199}}1
+             {И}{{\selectfont\char200}}1
+             {Й}{{\selectfont\char201}}1
+             {К}{{\selectfont\char202}}1
+             {Л}{{\selectfont\char203}}1
+             {М}{{\selectfont\char204}}1
+             {Н}{{\selectfont\char205}}1
+             {О}{{\selectfont\char206}}1
+             {П}{{\selectfont\char207}}1
+             {Р}{{\selectfont\char208}}1
+             {С}{{\selectfont\char209}}1
+             {Т}{{\selectfont\char210}}1
+             {У}{{\selectfont\char211}}1
+             {Ф}{{\selectfont\char212}}1
+             {Х}{{\selectfont\char213}}1
+             {Ц}{{\selectfont\char214}}1
+             {Ч}{{\selectfont\char215}}1
+             {Ш}{{\selectfont\char216}}1
+             {Щ}{{\selectfont\char217}}1
+             {Ъ}{{\selectfont\char218}}1
+             {Ы}{{\selectfont\char219}}1
+             {Ь}{{\selectfont\char220}}1
+             {Э}{{\selectfont\char221}}1
+             {Ю}{{\selectfont\char222}}1
+             {Я}{{\selectfont\char223}}1
+}
+\lstset{style=sharpc}
+
+\title{Отчет по лабораторной работе №2\\
+Реализация криптографических алгоритмов}
+\author{Студент}
+\date{\today}
+
+\begin{document}
+
+\begin{center}
+МИНИСТЕРСТВО НАУКИ И ВЫСШЕГО ОБРАЗОВАНИЯ РОССИЙСКОЙ ФЕДЕРАЦИИ \\
+Федеральное государственное бюджетное образовательное учреждение высшего образования \\
+«\textbf{Вятский государственный университет}» \\
+(ФГБОУ ВО «ВятГУ») \\
+Институт математики и информационных систем \\
+Факультет автоматики и вычислительной техники \\
+Кафедра электронных вычислительных машин
+
+\vspace*{35mm}
+
+\textbf{\Large Отчёт \\
+Лабораторная работа по дисциплине \\
+«Защита информации»}
+
+\vspace*{5mm}
+«\textbf{Создание защищенного от копирования приложения}»
+
+\vspace*{11mm}
+
+\begin{flushright}
+Выполнил студент группы ПИб-4301 \\
+Лоленко Н.В.\\
+
+\vspace{5mm}
+
+Проверил преподаватель кафедры ЭВМ \\ Караваева О.В.\\
+\end{flushright}
+
+\vspace*{45mm}
+
+Киров 2025
+\end{center}
+
+\maketitle
+
+\section{Введение}
+В данной лабораторной работе реализованы следующие криптографические алгоритмы:
+\begin{itemize}
+    \item RSA - асимметричный алгоритм шифрования
+    \item Кузнечик (ГОСТ 34.12-2018) - симметричный блочный шифр
+    \item Шифр Полибия - классический шифр замены
+    \item Adler-32 - алгоритм контрольной суммы
+\end{itemize}
+
+\section{Задания лабораторной работы}
+
+\subsection{Задание 1 - Шифр квадрат Полибия}
+Требуется написать дешифратор для шифра квадрат Полибия и расшифровать предоставленную строку:
+\begin{lstlisting}
+3 32 42 63 41 41 51 16 52 46 53 32 45 11 61 43 46 53 31 66 51 23 42 54 21 64 15 66 66 56 14 23 46 53 31 63 61 12 34 33 23 33 46 4
+\end{lstlisting}
+
+Квадрат для расшифровки (размерность 6х6, строки разделены запятой):
+\begin{lstlisting}
+АБВГДЕ, ЁЖЗИЙК, ЛМНОПР, СТУФХЦ, ЧШЩЪЫЬ, ЭЮЯ. ,
+\end{lstlisting}
+
+\subsection{Задание 2 - Алгоритм шифрования Кузнечик}
+Требуется зашифровать строку алгоритмом шифрования Кузнечик в режиме имитовставки:
+\begin{lstlisting}
+"Кирпич ни с того ни с сего никому и никогда на голову не свалится."
+\end{lstlisting}
+
+Ключ для шифрования:
+\begin{lstlisting}
+4079834365408257140643820486045333485254617662287735457960634880
+\end{lstlisting}
+
+\subsection{Задание 3 - Алгоритм шифрования RSA}
+Требуется:
+\begin{enumerate}
+    \item Сгенерировать открытый и закрытый ключи в алгоритме шифрования RSA, используя простые числа:
+    \begin{itemize}
+        \item p = 337
+        \item q = 461
+    \end{itemize}
+    \item Зашифровать сообщение:
+    \begin{lstlisting}
+"Все теории стоят одна другой."
+    \end{lstlisting}
+\end{enumerate}
+
+\subsection{Задание 4 - Функция хеширования}
+Требуется:
+\begin{enumerate}
+    \item Реализовать алгоритм криптографической функции Adler-32
+    \item Зашифровать сообщение:
+    \begin{lstlisting}
+"Важно то, что дважды два четыре, а остальное все пустяки."
+    \end{lstlisting}
+\end{enumerate}
+
+\subsection{Задание 5 - Электронная цифровая подпись}
+Требуется:
+\begin{enumerate}
+    \item Вычислить хеш-образ строки:
+    \begin{lstlisting}
+"Красота спасет мир."
+    \end{lstlisting}
+    \item Вычислить электронную цифровую подпись по схеме RSA
+\end{enumerate}
+
+\section{Реализация алгоритма RSA}
+Алгоритм RSA реализован с использованием следующих параметров:
+\begin{itemize}
+    \item P = 337 (простое число)
+    \item Q = 461 (простое число)
+    \item n = P * Q = 155357
+    \item φ(n) = (P-1) * (Q-1) = 154560
+    \item e = 65537 (открытая экспонента)
+    \item d - закрытая экспонента, вычисляемая как мультипликативно обратное к e по модулю φ(n)
+\end{itemize}
+
+Основные этапы работы алгоритма:
+\begin{enumerate}
+    \item Генерация ключей:
+    \begin{itemize}
+        \item Вычисление модуля n и функции Эйлера φ(n)
+        \item Выбор открытой экспоненты e
+        \item Вычисление закрытой экспоненты d
+    \end{itemize}
+    \item Шифрование:
+    \begin{itemize}
+        \item Разбиение сообщения на блоки по 2 байта
+        \item Шифрование каждого блока по формуле: c = m^e mod n
+    \end{itemize}
+    \item Расшифрование:
+    \begin{itemize}
+        \item Расшифрование каждого блока по формуле: m = c^d mod n
+        \item Преобразование числовых значений обратно в байты
+    \end{itemize}
+\end{enumerate}
+
+Реализация алгоритма:
+\begin{lstlisting}[caption=Реализация RSA]
+public partial class RSAForm : Form
+{
+    private const int P = 337;
+    private const int Q = 461;
+    private BigInteger e;
+    private BigInteger d;
+    private BigInteger n;
+
+    private List<BigInteger> EncryptMessage(string message)
+    {
+        byte[] messageBytes = Encoding.GetEncoding("windows-1251").GetBytes(message);
+        List<BigInteger> encryptedBlocks = new List<BigInteger>();
+
+        for (int i = 0; i < messageBytes.Length; i += 2)
+        {
+            BigInteger blockValue = 0;
+            int blockSize = Math.Min(2, messageBytes.Length - i);
+            for (int b = 0; b < blockSize; b++)
+            {
+                blockValue += (BigInteger)messageBytes[i + b] << (8 * b);
+            }
+
+            BigInteger c = BigInteger.ModPow(blockValue, e, n);
+            encryptedBlocks.Add(c);
+        }
+
+        return encryptedBlocks;
+    }
+
+    private string DecryptMessage(List<BigInteger> encryptedBlocks)
+    {
+        List<byte> decryptedBytes = new List<byte>();
+
+        foreach (BigInteger c in encryptedBlocks)
+        {
+            BigInteger m = BigInteger.ModPow(c, d, n);
+            byte b0 = (byte)(m & 0xFF);
+            byte b1 = (byte)((m >> 8) & 0xFF);
+            decryptedBytes.Add(b0);
+            if (b1 != 0)
+                decryptedBytes.Add(b1);
+        }
+
+        return Encoding.GetEncoding("windows-1251").GetString(decryptedBytes.ToArray());
+    }
+}
+\end{lstlisting}
+
+\section{Реализация алгоритма "Кузнечик"}
+Реализована функция вычисления имитовставки (MAC) для алгоритма "Кузнечик" согласно ГОСТ 34.12-2018. 
+
+Основные компоненты:
+\begin{itemize}
+    \item Таблица подстановок (S-box) размером 256 байт
+    \item Вектор линейного преобразования размером 16 байт
+    \item Размер блока: 128 бит (16 байт)
+    \item Размер ключа: 256 бит (32 байта)
+\end{itemize}
+
+Этапы вычисления имитовставки:
+\begin{enumerate}
+    \item Разбиение сообщения на блоки по 16 байт с дополнением при необходимости
+    \item Для каждого блока:
+    \begin{itemize}
+        \item XOR с текущим значением MAC
+        \item Применение нелинейного преобразования (S-box)
+        \item Применение линейного преобразования L
+    \end{itemize}
+\end{enumerate}
+
+Реализация алгоритма:
+\begin{lstlisting}[caption=Реализация алгоритма Кузнечик]
+public partial class KuznechikForm : Form
+{
+    private static readonly byte[] Sbox = new byte[] {
+        0xFC, 0xEE, 0xDD, 0x11, /* ... остальные значения ... */ 0x63, 0xB6
+    };
+
+    private static readonly byte[] LVector = new byte[] {
+        0x94, 0x20, 0x85, 0x10, 0xC2, 0xC0, 0x01, 0xFB,
+        0x01, 0x94, 0x20, 0x85, 0x10, 0xC2, 0xC0, 0x01
+    };
+
+    private byte[] KuznechikEncryptBlock(byte[] block, byte[] key)
+    {
+        byte[] state = new byte[16];
+        Array.Copy(block, state, 16);
+
+        for (int i = 0; i < 16; i++)
+        {
+            state[i] = Sbox[state[i]];
+        }
+
+        for (int j = 0; j < 16; j++)
+        {
+            byte x = 0;
+            for (int i = 0; i < 16; i++)
+            {
+                byte temp = state[i];
+                for (int k = 0; k < 8; k++)
+                {
+                    if ((LVector[i] & (1 << (7 - k))) != 0)
+                    {
+                        x ^= temp;
+                    }
+                    byte carry = (byte)(temp & 0x80);
+                    temp <<= 1;
+                    if (carry != 0)
+                    {
+                        temp ^= 0xC3;
+                    }
+                }
+            }
+            byte[] newState = new byte[16];
+            Array.Copy(state, 1, newState, 0, 15);
+            newState[15] = x;
+            state = newState;
+        }
+
+        return state;
+    }
+}
+\end{lstlisting}
+
+\section{Тестовые данные}
+Для проверки работы алгоритма "Кузнечик" использовались следующие тестовые данные:
+
+Сообщение:
+\begin{lstlisting}
+"Кирпич ни с того ни с сего никому и никогда на голову не свалится."
+\end{lstlisting}
+
+Ключ:
+\begin{lstlisting}
+4079834365408257140643820486045333485254617662287735457960634880
+\end{lstlisting}
+
+\section{Реализация шифра Полибия}
+Реализован алгоритм дешифрования с использованием квадрата Полибия размером 6x6. 
+
+Основные характеристики реализации:
+\begin{itemize}
+    \item Размер матрицы: 6x6 символов
+    \item Поддержка русского алфавита и специальных символов
+    \item Координатная система: от 1 до 6 для строк и столбцов
+    \item Формат входных данных: пары чисел, разделенные пробелами
+\end{itemize}
+
+Особенности реализации:
+\begin{enumerate}
+    \item Валидация входных данных:
+    \begin{itemize}
+        \item Проверка размерности матрицы (6 строк)
+        \item Проверка длины каждой строки (6 символов)
+        \item Автоматическое дополнение последней строки пробелами при необходимости
+    \end{itemize}
+    \item Обработка координат:
+    \begin{itemize}
+        \item Поддержка одиночных цифр (автоматически добавляется ведущий ноль)
+        \item Проверка диапазона координат (1-6)
+        \item Преобразование координат из 1-индексации в 0-индексацию
+    \end{itemize}
+\end{enumerate}
+
+Реализация алгоритма:
+\begin{lstlisting}[caption=Реализация шифра Полибия]
+public partial class PolybiusForm : Form
+{
+    private const int MATRIX_SIZE = 6;
+
+    private bool ValidateMatrix(string[] rows, out string errorMessage, 
+        out string[] processedRows)
+    {
+        errorMessage = string.Empty;
+        processedRows = rows.ToArray();
+
+        if (rows.Length != MATRIX_SIZE)
+        {
+            errorMessage = $"Матрица должна состоять из {MATRIX_SIZE} строк.";
+            return false;
+        }
+
+        for (int i = 0; i < MATRIX_SIZE - 1; i++)
+        {
+            if (string.IsNullOrWhiteSpace(rows[i]))
+            {
+                errorMessage = $"Строка {i + 1} матрицы пуста.";
+                return false;
+            }
+
+            if (rows[i].Length != MATRIX_SIZE)
+            {
+                errorMessage = $"Строка {i + 1} матрицы должна содержать {MATRIX_SIZE} символов.";
+                return false;
+            }
+        }
+
+        if (rows[MATRIX_SIZE - 1].Length < MATRIX_SIZE)
+        {
+            processedRows[MATRIX_SIZE - 1] = 
+                rows[MATRIX_SIZE - 1].PadRight(MATRIX_SIZE, ' ');
+        }
+
+        return true;
+    }
+
+    private void buttonDecode_Click(object sender, EventArgs e)
+    {
+        string[] rows = matrixText.Split(new char[] { ',' }, 
+            StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => s.Trim())
+            .ToArray();
+
+        if (!ValidateMatrix(rows, out string errorMessage, out string[] processedRows))
+        {
+            MessageBox.Show(errorMessage);
+            return;
+        }
+
+        char[,] polybiusSquare = new char[MATRIX_SIZE, MATRIX_SIZE];
+        for (int i = 0; i < MATRIX_SIZE; i++)
+            for (int j = 0; j < MATRIX_SIZE; j++)
+                polybiusSquare[i, j] = processedRows[i][j];
+
+        string[] tokens = encodedText.Split(' ', 
+            StringSplitOptions.RemoveEmptyEntries);
+
+        StringBuilder decodedMessage = new StringBuilder();
+        foreach (string token in tokens)
+        {
+            string processedToken = token.Length == 1 ? "0" + token : token;
+            if (int.TryParse(processedToken[0].ToString(), out int rowDigit) &&
+                int.TryParse(processedToken[1].ToString(), out int colDigit))
+            {
+                decodedMessage.Append(
+                    polybiusSquare[rowDigit - 1, colDigit - 1]);
+            }
+        }
+    }
+}
+\end{lstlisting}
+
+\section{Реализация алгоритма Adler-32}
+Реализован алгоритм вычисления контрольной суммы Adler-32, который является улучшенной версией алгоритма Fletcher.
+
+Основные характеристики алгоритма:
+\begin{itemize}
+    \item Размер хеша: 32 бита
+    \item Модуль: 65521 (наибольшее простое число меньше \(2^{16}\))
+    \item Начальные значения: A = 1, B = 0
+    \item Результат: комбинация двух 16-битных значений (B << 16 | A)
+\end{itemize}
+
+Алгоритм работы:
+\begin{enumerate}
+    \item Инициализация:
+    \begin{itemize}
+        \item A = 1 (первый аккумулятор)
+        \item B = 0 (второй аккумулятор)
+    \end{itemize}
+    \item Для каждого байта данных:
+    \begin{itemize}
+        \item A = (A + байт) mod 65521
+        \item B = (B + A) mod 65521
+    \end{itemize}
+    \item Формирование результата:
+    \begin{itemize}
+        \item Сдвиг B на 16 бит влево
+        \item Объединение с A через побитовое OR
+    \end{itemize}
+\end{enumerate}
+
+Особенности реализации:
+\begin{itemize}
+    \item Использование кодировки Windows-1251 для корректной обработки русских символов
+    \item Вывод результата в шестнадцатеричном формате (8 символов)
+    \item Эффективная обработка данных за один проход
+\end{itemize}
+
+Реализация алгоритма:
+\begin{lstlisting}[caption=Реализация алгоритма Adler-32]
+public partial class Adler32Form : Form
+{
+    private uint ComputeAdler32(byte[] data)
+    {
+        const uint MOD_ADLER = 65521;
+        uint A = 1;
+        uint B = 0;
+
+        foreach (byte b in data)
+        {
+            A = (A + b) % MOD_ADLER;
+            B = (B + A) % MOD_ADLER;
+        }
+
+        return (B << 16) | A;
+    }
+
+    private void buttonCompute_Click(object sender, EventArgs e)
+    {
+        string inputText = textBoxInput.Text;
+        byte[] data = Encoding.GetEncoding("windows-1251").GetBytes(inputText);
+        uint hash = ComputeAdler32(data);
+        string hashHex = hash.ToString("X8");
+        textBoxOutput.Text = hashHex;
+    }
+}
+\end{lstlisting}
+
+\section{Тестовые данные}
+Для проверки работы алгоритма "Кузнечик" использовались следующие тестовые данные:
+
+Сообщение:
+\begin{lstlisting}
+"Кирпич ни с того ни с сего никому и никогда на голову не свалится."
+\end{lstlisting}
+
+Ключ:
+\begin{lstlisting}
+4079834365408257140643820486045333485254617662287735457960634880
+\end{lstlisting}
+
+\section{Реализация электронной цифровой подписи (ЭЦП)}
+В рамках лабораторной работы также реализован механизм электронной цифровой подписи на основе алгоритма RSA. 
+
+Основные компоненты ЭЦП:
+\begin{itemize}
+    \item Использование RSA с теми же параметрами (P = 337, Q = 461)
+    \item Хеширование сообщения с помощью Adler-32
+    \item Формирование подписи с использованием закрытого ключа RSA
+\end{itemize}
+
+Процесс создания ЭЦП:
+\begin{enumerate}
+    \item Генерация ключей RSA:
+    \begin{itemize}
+        \item Вычисление модуля n = P * Q = 155357
+        \item Вычисление функции Эйлера φ(n) = (P-1) * (Q-1) = 154560
+        \item Выбор открытой экспоненты e = 65537
+        \item Вычисление закрытой экспоненты d
+    \end{itemize}
+    \item Создание подписи:
+    \begin{itemize}
+        \item Вычисление хеша сообщения (Adler-32)
+        \item Приведение хеша к диапазону модуля n
+        \item Вычисление подписи: s = (hashValue)^d mod n
+    \end{itemize}
+\end{enumerate}
+
+Пример реализации (фрагмент кода):
+\begin{lstlisting}[caption=Реализация ЭЦП]
+using System;
+using System.Numerics;
+using System.Text;
+using System.Windows.Forms;
+
+namespace Lab2
+{
+    public partial class DigitalSignatureForm : Form
+    {
+        private const int P = 337;
+        private const int Q = 461;
+        private BigInteger e;
+        private BigInteger d;
+        private BigInteger n;
+
+        public DigitalSignatureForm()
+        {
+            InitializeComponent();
+            GenerateKeys();
+        }
+
+        private void GenerateKeys()
+        {
+            n = P * Q;                      
+            BigInteger phi = (P - 1) * (Q - 1);  
+            e = 65537;
+            
+            if (BigInteger.GreatestCommonDivisor(e, phi) != 1)
+            {
+                MessageBox.Show("e и phi(n) не взаимно просты.");
+                return;
+            }
+
+            d = ModInverse(e, phi);
+        }
+
+        private void buttonSign_Click(object sender, EventArgs e)
+        {
+            string message = "Красота спасет мир.";
+            byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+            uint hash = ComputeAdler32(messageBytes);
+
+            BigInteger hashValue = new BigInteger(hash);
+            hashValue = hashValue % n;
+            BigInteger signature = BigInteger.ModPow(hashValue, d, n);
+
+            textBoxSignature.Text = signature.ToString();
+        }
+
+        private uint ComputeAdler32(byte[] data)
+        {
+            const uint MOD_ADLER = 65521;
+            uint a = 1, b = 0;
+
+            foreach (byte bt in data)
+            {
+                a = (a + bt) % MOD_ADLER;
+                b = (b + a) % MOD_ADLER;
+            }
+
+            return (b << 16) | a;
+        }
+    }
+}
+\end{lstlisting}
+
+\section{Шаблон листинга}
+Пример использования листинга кода в отчете:
+
+\begin{lstlisting}[caption=Пример кода на C\#]
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine("Пример кода");
+        // Комментарий
+        int x = 42;
+        string text = "Текст";
+    }
+}
+\end{lstlisting}
+
+\section{Заключение}
+В ходе выполнения лабораторной работы были успешно реализованы различные криптографические алгоритмы. Особое внимание было уделено:
+\begin{itemize}
+    \item Корректной работе с большими числами (использование BigInteger)
+    \item Обработке ошибок и проверке входных данных
+    \item Оптимизации производительности
+    \item Соответствию стандартам (ГОСТ 34.12-2018)
+\end{itemize}
+
+\end{document} 

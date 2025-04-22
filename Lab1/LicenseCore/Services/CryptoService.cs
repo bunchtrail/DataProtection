@@ -10,7 +10,7 @@ namespace LicenseCore.Services
         private readonly byte[] _key;
         private readonly byte[] _iv;
 
-        public CryptoService()
+        public CryptoService()// Cpuid |  serial number | ... | подпись
         {
             // В реальном приложении эти значения должны быть защищены и храниться в безопасном месте
             _key = Encoding.UTF8.GetBytes("SecretKey1231234SecretKey1231234"); // 32 bytes for AES-256
@@ -19,7 +19,7 @@ namespace LicenseCore.Services
 
         public string GenerateSignature(string data)
         {
-            using var hmac = new HMACSHA256(_key);
+            using var hmac = new HMACSHA256(_key); // ШИФРОВАНИЕ
             byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(data));
             return Convert.ToBase64String(hash);
         }

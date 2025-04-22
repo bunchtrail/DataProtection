@@ -1,3 +1,4 @@
+using System; // Добавлено для STAThread и AppDomain
 using System.Windows.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using LicenseCore.Interfaces;
@@ -15,6 +16,7 @@ namespace ProtectedApp
         {
             try
             {
+                // Используем базовую директорию приложения для лога
                 var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, LogFile);
                 var logMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}{Environment.NewLine}";
                 File.AppendAllText(logPath, logMessage);
@@ -22,21 +24,22 @@ namespace ProtectedApp
             }
             catch
             {
-                // Игнорируем ошибки логирования
+                // Игнорируем ошибки логирования, чтобы не прерывать основной поток
             }
         }
 
-        [STAThread]
+        [STAThread] // Атрибут STAThread важен для MessageBox
         static void Main()
         {
+            // Базовая настройка для GUI-приложения, даже если мы не показываем сложную форму
+            Application.SetHighDpiMode(HighDpiMode.SystemAware);
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
             try
             {
                 Log("Запуск приложения");
                 Log($"Рабочая директория: {AppDomain.CurrentDomain.BaseDirectory}");
-
-                Application.SetHighDpiMode(HighDpiMode.SystemAware);
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
 
                 Log("Настройка сервисов");
                 var services = new ServiceCollection();
@@ -44,7 +47,7 @@ namespace ProtectedApp
 
                 using var serviceProvider = services.BuildServiceProvider();
                 var licenseService = serviceProvider.GetRequiredService<ILicenseService>();
-                var hardwareInfoProvider = serviceProvider.GetRequiredService<IHardwareInfoProvider>();
+                // IHardwareInfoProvider больше не нужен напрямую здесь, но нужен для LicenseService
 
                 Log("Загрузка лицензии");
                 var license = licenseService.LoadLicense();
@@ -53,41 +56,49 @@ namespace ProtectedApp
                     Log("Ошибка: Лицензия отсутствует");
                     MessageBox.Show("Лицензия отсутствует. Приложение будет закрыто.",
                         "Ошибка лицензии", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
+                    return; // Выход из приложения
                 }
 
                 Log($"Лицензия загружена, длина: {license.Length}");
-                
+
                 Log("Проверка лицензии");
                 if (!licenseService.ValidateLicense(license))
                 {
                     Log("Ошибка: Лицензия недействительна");
                     MessageBox.Show("Лицензия недействительна. Приложение будет закрыто.",
                         "Ошибка лицензии", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
+                    return; // Выход из приложения
                 }
 
                 Log("Лицензия успешно проверена");
 
-                var hardwareInfo = hardwareInfoProvider.GetHardwareInfo();
-                Log($"Информация об оборудовании: {hardwareInfo}");
+                // --- ИЗМЕНЕНИЕ: Вместо запуска MainForm показываем MessageBox ---
+                Log("Приложение успешно запущено (показываем сообщение).");
+                MessageBox.Show(
+                    "Успешно запущено", // Текст сообщения
+                    "ProtectedApp",      // Заголовок окна
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                Log("Сообщение показано, приложение завершается.");
+                // --- Конец изменения ---
 
-                Log("Запуск главной формы");
-                Application.Run(new MainForm(hardwareInfoProvider));
             }
             catch (Exception ex)
             {
                 var message = $"Критическая ошибка: {ex.Message}\nStack trace: {ex.StackTrace}";
                 Log(message);
-                MessageBox.Show(message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // Показываем ошибку пользователю в любом случае
+                MessageBox.Show(message, "Критическая ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+            // Приложение завершится автоматически после выхода из метода Main
         }
 
         private static void ConfigureServices(ServiceCollection services)
         {
+            // Оставляем регистрацию сервисов, так как LicenseService все еще нужен
             services.AddSingleton<ICryptoService, CryptoService>();
-            services.AddSingleton<IHardwareInfoProvider, HardwareInfoProvider>();
+            services.AddSingleton<IHardwareInfoProvider, HardwareInfoProvider>(); // Нужен для LicenseService
             services.AddSingleton<ILicenseService, LicenseService>();
         }
     }
-} 
+}
